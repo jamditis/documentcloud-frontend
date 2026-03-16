@@ -159,6 +159,7 @@
     position: relative;
     display: flex;
     align-items: center;
+    margin: 0.25rem 0;
     padding: 0 0 0 0.75rem;
 
     caret-color: var(--blue-3, #0969da);
