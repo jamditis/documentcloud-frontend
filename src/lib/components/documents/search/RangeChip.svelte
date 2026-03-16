@@ -52,7 +52,7 @@
   });
 </script>
 
-<span class="search-chip search-range" aria-label={chipLabel()}>
+<span class="search-chip search-range" class:chip-required={prefix === "+"} class:chip-excluded={prefix === "-"} aria-label={chipLabel()}>
   {#if prefix}
     <span
       class="chip-prefix"
@@ -69,6 +69,18 @@
     background-color: var(--blue-1);
     border: 1px solid var(--blue-2);
     color: var(--blue-5);
+  }
+
+  .search-range.chip-required {
+    background-color: var(--green-1);
+    border-color: var(--green-2);
+    color: var(--green-5);
+  }
+
+  .search-range.chip-excluded {
+    background-color: var(--red-1);
+    border-color: var(--red-2);
+    color: var(--red-5);
   }
 
   .chip-field {

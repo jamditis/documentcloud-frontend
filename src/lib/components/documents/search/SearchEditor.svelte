@@ -161,7 +161,6 @@
     align-items: center;
     margin: 0.25rem 0;
     padding: 0 0 0 0.75rem;
-
     caret-color: var(--blue-3, #0969da);
   }
 
@@ -230,6 +229,16 @@
   :global(.search-prefix-excluded) {
     color: var(--orange-3);
     font-weight: 600;
+  }
+
+  :global(.search-term-required) {
+    background-color: var(--green-1);
+    border-radius: 3px;
+  }
+
+  :global(.search-term-excluded) {
+    background-color: var(--red-1);
+    border-radius: 3px;
   }
 
   /* Chip styles (used by atom nodes) */
