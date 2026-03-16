@@ -6,6 +6,7 @@
   import { usersList, organizationsList } from "@/test/fixtures/accounts";
   import { projectList } from "@/test/fixtures/projects";
   import { documentsList } from "@/test/fixtures/documents";
+  import { INITIAL_VIEWPORTS } from "@storybook/addon-viewport";
   import { createApiUrl } from "@/test/handlers/utils";
 
   const args = {
@@ -115,6 +116,9 @@
     parameters: {
       layout: "centered",
       msw: { handlers: apiHandlers },
+      viewport: {
+        viewports: INITIAL_VIEWPORTS,
+      },
     },
   });
 
@@ -230,5 +234,45 @@
     ...args,
     initialQuery: "user:7143 organization:10010 project:1",
   }}
+  {template}
+/>
+
+<!-- Responsive viewport stories for manual visual audit -->
+<Story
+  name="Mobile / Empty"
+  args={{ ...args, initialQuery: "" }}
+  parameters={{ viewport: { defaultViewport: "mobile1" } }}
+  {template}
+/>
+<Story
+  name="Mobile / With Chips"
+  args={{
+    ...args,
+    initialQuery:
+      "+user:102112 created_at:[NOW-11MONTH TO NOW-3MONTH] AND project:214246 sort:page_count",
+  }}
+  parameters={{ viewport: { defaultViewport: "mobile1" } }}
+  {template}
+/>
+<Story
+  name="Mobile / Autocomplete Open"
+  args={{ ...args, initialQuery: "" }}
+  parameters={{ viewport: { defaultViewport: "mobile1" } }}
+  {template}
+/>
+<Story
+  name="Tablet / With Chips"
+  args={{
+    ...args,
+    initialQuery:
+      "+user:102112 created_at:[NOW-11MONTH TO NOW-3MONTH] AND project:214246 sort:page_count",
+  }}
+  parameters={{ viewport: { defaultViewport: "ipad" } }}
+  {template}
+/>
+<Story
+  name="Tablet / Autocomplete Open"
+  args={{ ...args, initialQuery: "" }}
+  parameters={{ viewport: { defaultViewport: "ipad" } }}
   {template}
 />
