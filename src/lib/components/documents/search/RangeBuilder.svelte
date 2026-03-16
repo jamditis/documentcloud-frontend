@@ -15,6 +15,8 @@
     onHover: (index: number) => void;
     onCustomRange: (lower: string, upper: string) => void;
     onFixedValue: (value: string) => void;
+    onFocusEditor: () => void;
+    onDismiss: () => void;
   }
 
   let {
@@ -25,7 +27,9 @@
     onSelect,
     onHover,
     onCustomRange,
-    onFixedValue
+    onFixedValue,
+    onFocusEditor,
+    onDismiss,
   }: Props = $props();
 
   let dropdown: HTMLElement | undefined = $state();
@@ -39,6 +43,11 @@
   /** Expose the dropdown element so the plugin can position it. */
   export function getElement(): HTMLElement | undefined {
     return dropdown;
+  }
+
+  /** Allow external code to move focus into this component. */
+  export function focus() {
+    dropdown?.focus();
   }
 
   function handleFixedInsert() {
@@ -66,15 +75,49 @@
       handleRangeInsert();
     }
   }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
+      onDismiss();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      e.stopPropagation();
+      onFocusEditor();
+    } else if (e.key === "Tab" && dropdown) {
+      const focusable = Array.from(
+        dropdown.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), [tabindex="0"]',
+        ),
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      if (e.shiftKey) {
+        if (document.activeElement === first || document.activeElement === dropdown) {
+          e.preventDefault();
+          onFocusEditor();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          onFocusEditor();
+        }
+      }
+    }
+  }
 </script>
 
 <div
   bind:this={dropdown}
   class="search-autocomplete search-ac-range"
-  role="listbox"
-  aria-label="Range options"
+  role="dialog"
+  aria-label="Range builder"
+  tabindex="0"
   id={dropdownId}
   style="position: absolute; display: none;"
+  onkeydown={handleKeydown}
 >
   {#if rangeConfig}
     <!-- Fixed (single-value) section -->
@@ -117,20 +160,23 @@
     <div class="search-ac-section-label">Range</div>
 
     <!-- Shortcuts -->
-    {#each suggestions as suggestion, index}
-      <div
-        class="search-ac-option"
-        class:selected={index === selectedIndex}
-        role="option"
-        tabindex="-1"
-        id="{dropdownId}-opt-{index}"
-        aria-selected={index === selectedIndex}
-        onmousedown={(e) => { e.preventDefault(); e.stopPropagation(); onSelect(index); }}
-        onmouseenter={() => onHover(index)}
-      >
-        <span class="search-ac-label">{suggestion.label}</span>
-      </div>
-    {/each}
+    <div role="listbox" aria-label="Range shortcuts">
+      {#each suggestions as suggestion, index}
+        <div
+          class="search-ac-option"
+          class:selected={index === selectedIndex}
+          role="option"
+          tabindex="0"
+          id="{dropdownId}-opt-{index}"
+          aria-selected={index === selectedIndex}
+          onmousedown={(e) => { e.preventDefault(); e.stopPropagation(); onSelect(index); }}
+          onmouseenter={() => onHover(index)}
+          onkeydown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onSelect(index); } }}
+        >
+          <span class="search-ac-label">{suggestion.label}</span>
+        </div>
+      {/each}
+    </div>
 
     {#if suggestions.length > 0}
       <hr class="search-ac-separator" />

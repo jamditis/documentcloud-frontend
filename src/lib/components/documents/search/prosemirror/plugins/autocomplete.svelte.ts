@@ -646,8 +646,32 @@ export function autocompletePlugin(
             return true;
           }
 
-          case "Enter":
           case "Tab": {
+            if (state.stage === "range") {
+              // Move focus into the RangeBuilder dialog
+              const rangeEl = document.querySelector(
+                ".search-ac-range",
+              ) as HTMLElement | null;
+              if (rangeEl) {
+                event.preventDefault();
+                rangeEl.focus();
+                return true;
+              }
+            }
+            // Fall through to accept suggestion for field/value stages
+            event.preventDefault();
+            const tabSuggestion = state.suggestions[state.selectedIndex];
+            if (tabSuggestion) {
+              applySuggestion(
+                view,
+                tabSuggestion,
+                options.getPreloadedSuggestions?.(),
+              );
+            }
+            return true;
+          }
+
+          case "Enter": {
             event.preventDefault();
             const suggestion = state.suggestions[state.selectedIndex];
             if (suggestion) {
@@ -919,6 +943,15 @@ export function autocompletePlugin(
             onFixedValue: (value: string) => {
               applyFixedValue(view, value);
               editorView.focus();
+            },
+            onFocusEditor: () => {
+              editorView.focus();
+            },
+            onDismiss: () => {
+              editorView.focus();
+              editorView.dispatch(
+                editorView.state.tr.setMeta(autocompletePluginKey, DISMISSED),
+              );
             },
           });
           flushSync(() => {
