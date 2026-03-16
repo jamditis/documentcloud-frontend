@@ -15,7 +15,7 @@ import {
 import { searchSchema } from "../schema";
 import AutocompleteDropdown from "../../AutocompleteDropdown.svelte";
 import RangeBuilder from "../../RangeBuilder.svelte";
-import { mount, unmount } from "svelte";
+import { flushSync, mount, unmount } from "svelte";
 
 export const autocompletePluginKey = new PluginKey("autocomplete");
 
@@ -921,9 +921,11 @@ export function autocompletePlugin(
               editorView.focus();
             },
           });
-          rangeComponent = mount(RangeBuilder, {
-            target: rangeContainer,
-            props: rangeProps,
+          flushSync(() => {
+            rangeComponent = mount(RangeBuilder, {
+              target: rangeContainer,
+              props: rangeProps,
+            });
           });
         } else {
           rangeProps.fieldName = pluginState.fieldName!;
