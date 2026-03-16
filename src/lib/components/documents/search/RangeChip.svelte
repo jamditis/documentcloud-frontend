@@ -43,9 +43,16 @@
 
   let displayLower = $derived(displayBound(lower));
   let displayUpper = $derived(displayBound(upper));
+
+  let chipLabel = $derived(() => {
+    const prefixText = prefix === "+" ? "required, " : prefix === "-" ? "excluded, " : "";
+    const lowerDesc = inclusiveLower ? "from" : "after";
+    const upperDesc = inclusiveUpper ? "to" : "before";
+    return `${prefixText}${field}: ${lowerDesc} ${displayLower} ${upperDesc} ${displayUpper}`;
+  });
 </script>
 
-<span class="search-chip search-range">
+<span class="search-chip search-range" aria-label={chipLabel()}>
   {#if prefix}
     <span
       class="chip-prefix"

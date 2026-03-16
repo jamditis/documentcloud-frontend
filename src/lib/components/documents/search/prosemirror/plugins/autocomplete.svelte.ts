@@ -714,7 +714,7 @@ export function autocompletePlugin(
       const editorDom = editorView.dom;
       editorDom.setAttribute("aria-autocomplete", "list");
       editorDom.setAttribute("aria-expanded", "false");
-      editorDom.setAttribute("aria-owns", dropdownId);
+      editorDom.setAttribute("aria-controls", dropdownId);
 
       let prevSuggestionCount = 0;
 
@@ -857,11 +857,19 @@ export function autocompletePlugin(
         }, 300);
       }
 
-      function announceCount(count: number) {
+      let prevStage: string | null = null;
+
+      function announceCount(count: number, stage: string, fieldName: string | null) {
         if (count === 0) {
           liveRegion.textContent = "";
         } else {
-          liveRegion.textContent = `${count} suggestion${count === 1 ? "" : "s"} available. Use up and down arrows to navigate.`;
+          let context = "";
+          if (stage === "value" && fieldName) {
+            context = ` for ${fieldName}`;
+          } else if (stage === "range" && fieldName) {
+            context = ` for ${fieldName} range`;
+          }
+          liveRegion.textContent = `${count} suggestion${count === 1 ? "" : "s"}${context} available. Use up and down arrows to navigate.`;
         }
       }
 
@@ -1006,9 +1014,10 @@ export function autocompletePlugin(
             editorDom.setAttribute("aria-expanded", "false");
             editorDom.removeAttribute("aria-activedescendant");
             if (prevSuggestionCount !== 0) {
-              announceCount(0);
+              announceCount(0, "field", null);
               prevSuggestionCount = 0;
             }
+            prevStage = null;
             return;
           }
 
@@ -1019,8 +1028,11 @@ export function autocompletePlugin(
             editorDom.setAttribute("aria-expanded", "true");
             const activeId = `${dropdownId}-opt-${pluginState.selectedIndex}`;
             editorDom.setAttribute("aria-activedescendant", activeId);
+            if (pluginState.stage !== prevStage) {
+              prevStage = pluginState.stage;
+            }
             if (pluginState.suggestions.length !== prevSuggestionCount) {
-              announceCount(pluginState.suggestions.length);
+              announceCount(pluginState.suggestions.length, pluginState.stage, pluginState.fieldName);
               prevSuggestionCount = pluginState.suggestions.length;
             }
             return;
@@ -1108,9 +1120,14 @@ export function autocompletePlugin(
           const activeId = `${dropdownId}-opt-${pluginState.selectedIndex}`;
           editorDom.setAttribute("aria-activedescendant", activeId);
 
+          // Announce stage transitions
+          if (pluginState.stage !== prevStage) {
+            prevStage = pluginState.stage;
+          }
+
           // Announce changes
           if (pluginState.suggestions.length !== prevSuggestionCount) {
-            announceCount(pluginState.suggestions.length);
+            announceCount(pluginState.suggestions.length, pluginState.stage, pluginState.fieldName);
             prevSuggestionCount = pluginState.suggestions.length;
           }
         },
@@ -1127,7 +1144,7 @@ export function autocompletePlugin(
           liveRegion.remove();
           editorDom.removeAttribute("aria-autocomplete");
           editorDom.removeAttribute("aria-expanded");
-          editorDom.removeAttribute("aria-owns");
+          editorDom.removeAttribute("aria-controls");
           editorDom.removeAttribute("aria-activedescendant");
         },
       };

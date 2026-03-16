@@ -46,9 +46,15 @@
   let isRich = $derived(RICH_FIELDS.has(field));
   let showLoading = $derived(isRich && !displayValue);
   let label = $derived(displayValue ?? displayBound(value));
+
+  let chipLabel = $derived(() => {
+    const prefixText = prefix === "+" ? "required, " : prefix === "-" ? "excluded, " : "";
+    const boostText = boost && boost > 1 ? `, boost ${boost}` : "";
+    return `${prefixText}${field}: ${label}${boostText}`;
+  });
 </script>
 
-<span class="search-chip search-field-value" class:locked>
+<span class="search-chip search-field-value" class:locked aria-label={chipLabel()}>
   {#if prefix}
     <span
       class="chip-prefix"

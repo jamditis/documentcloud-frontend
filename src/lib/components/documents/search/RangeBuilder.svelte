@@ -72,6 +72,7 @@
   bind:this={dropdown}
   class="search-autocomplete search-ac-range"
   role="listbox"
+  aria-label="Range options"
   id={dropdownId}
   style="position: absolute; display: none;"
 >

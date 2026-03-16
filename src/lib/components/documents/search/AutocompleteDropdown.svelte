@@ -43,6 +43,8 @@
   bind:this={dropdown}
   class="search-autocomplete"
   role="listbox"
+  aria-label="Search suggestions"
+  aria-busy={loading}
   id={dropdownId}
   style="position: absolute; display: none;"
 >
@@ -57,6 +59,7 @@
         tabindex="-1"
         id="{dropdownId}-opt-{index}"
         aria-selected={index === selectedIndex}
+        aria-label={suggestion.description ? `${suggestion.label}, ${suggestion.description}` : suggestion.label}
         onmousedown={(e) => { e.preventDefault(); e.stopPropagation(); onSelect(index); }}
         onmouseenter={() => onHover(index)}
       >

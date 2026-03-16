@@ -125,7 +125,7 @@
   });
 </script>
 
-<form class="search-editor-container" onsubmit={handleSubmit}>
+<form class="search-editor-container" aria-label="Search documents" onsubmit={handleSubmit}>
   <div class="search-editor-status" class:invalid={!queryValid}>
     {#if queryValid}
       <Search16 />
@@ -136,8 +136,17 @@
   {#each contextChips as chip}
     <FieldValueChip field={chip.field} value={chip.label} locked />
   {/each}
-  <div bind:this={editorRef} class="prosemirror-editor" role="textbox"></div>
-  <Button type="submit" mode="primary" ghost minW={false} disabled={!queryValid}>Search</Button>
+  <div
+    bind:this={editorRef}
+    class="prosemirror-editor"
+    role="textbox"
+    aria-label="Search documents"
+    aria-invalid={!queryValid ? true : undefined}
+  ></div>
+  <Button type="submit" mode="primary" ghost minW={false} disabled={!queryValid} aria-label="Search">Search</Button>
+  <div class="sr-only" aria-live="assertive" aria-atomic="true">
+    {#if !queryValid}Query syntax error{/if}
+  </div>
 </form>
 
 <style>
@@ -168,6 +177,15 @@
   .prosemirror-editor {
     flex: 1 1 auto;
     padding: 0.375rem 0.75rem;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   :global(.ProseMirror) {

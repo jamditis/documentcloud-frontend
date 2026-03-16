@@ -87,6 +87,25 @@
       e.preventDefault();
       e.stopPropagation();
       onFocusEditor();
+    } else if (e.key === "Tab" && popover) {
+      // Return focus to the editor when tabbing past the boundaries
+      const focusable = Array.from(popover.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [tabindex="0"], input:not([disabled])'
+      ));
+      if (focusable.length === 0) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      if (e.shiftKey) {
+        if (document.activeElement === first || document.activeElement === popover) {
+          e.preventDefault();
+          onFocusEditor();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          onFocusEditor();
+        }
+      }
     }
   }
 
