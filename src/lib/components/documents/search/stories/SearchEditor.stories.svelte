@@ -67,9 +67,7 @@
     }),
     http.get(projectsUrl, ({ request }) => {
       const url = new URL(request.url);
-      const prefix = url.searchParams
-        .get("title__istartswith")
-        ?.toLowerCase();
+      const prefix = url.searchParams.get("title__istartswith")?.toLowerCase();
       const idIn = url.searchParams.get("id__in");
       let results = projectList.results;
       if (prefix) {
@@ -130,7 +128,11 @@
 {/snippet}
 
 <Story name="Empty" args={{ ...args, initialQuery: "" }} {template} />
-<Story name="Single Term" args={{ ...args, initialQuery: "documents" }} {template} />
+<Story
+  name="Single Term"
+  args={{ ...args, initialQuery: "documents" }}
+  {template}
+/>
 <Story
   name="Multiple Terms"
   args={{ ...args, initialQuery: "multi term query" }}

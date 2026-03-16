@@ -177,9 +177,9 @@ describe("Decoration Plugin", () => {
         component.updateQuery("mueller AND report");
       });
       expect(getDecorations(editor, "search-operator")).toHaveLength(1);
-      expect(
-        getDecorations(editor, "search-operator")[0]?.textContent,
-      ).toBe("AND");
+      expect(getDecorations(editor, "search-operator")[0]?.textContent).toBe(
+        "AND",
+      );
     });
 
     it("removes decorations when operators are removed", async () => {

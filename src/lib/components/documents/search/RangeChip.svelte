@@ -18,20 +18,19 @@
     upper = "*",
     inclusiveLower = true,
     inclusiveUpper = true,
-    prefix = null
+    prefix = null,
   }: Props = $props();
 
   let lb = $derived(inclusiveLower ? "[" : "{");
   let rb = $derived(inclusiveUpper ? "]" : "}");
 
   /** Format a bound value for display. ISO dates become locale strings.
-   * 
+   *
    *  Only attempt date parsing for values that look like actual dates
    *  (contain a hyphen, e.g. "2024-01-15" or "2024-01-15T00:00:00Z").
    *  Bare numbers like "1" or "50" should not be treated as dates.
-  */
+   */
   function displayBound(value: string): string {
-    
     if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
       const date = new Date(value);
       if (!isNaN(date.getTime())) {
@@ -45,14 +44,20 @@
   let displayUpper = $derived(displayBound(upper));
 
   let chipLabel = $derived(() => {
-    const prefixText = prefix === "+" ? "required, " : prefix === "-" ? "excluded, " : "";
+    const prefixText =
+      prefix === "+" ? "required, " : prefix === "-" ? "excluded, " : "";
     const lowerDesc = inclusiveLower ? "from" : "after";
     const upperDesc = inclusiveUpper ? "to" : "before";
     return `${prefixText}${field}: ${lowerDesc} ${displayLower} ${upperDesc} ${displayUpper}`;
   });
 </script>
 
-<span class="search-chip search-range" class:chip-required={prefix === "+"} class:chip-excluded={prefix === "-"} aria-label={chipLabel()}>
+<span
+  class="search-chip search-range"
+  class:chip-required={prefix === "+"}
+  class:chip-excluded={prefix === "-"}
+  aria-label={chipLabel()}
+>
   {#if prefix}
     <span
       class="chip-prefix"

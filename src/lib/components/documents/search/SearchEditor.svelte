@@ -70,7 +70,7 @@
     e.preventDefault();
     if (!queryValid) return;
     const query = view ? getEditorQuery(view) : initialQuery;
-    onsubmit?.({ "q": query });
+    onsubmit?.({ q: query });
   }
 
   onMount(() => {
@@ -125,7 +125,11 @@
   });
 </script>
 
-<form class="search-editor-container" aria-label="Search documents" onsubmit={handleSubmit}>
+<form
+  class="search-editor-container"
+  aria-label="Search documents"
+  onsubmit={handleSubmit}
+>
   <div class="search-editor-status" class:invalid={!queryValid}>
     {#if queryValid}
       <Search16 />
@@ -143,7 +147,14 @@
     aria-label="Search documents"
     aria-invalid={!queryValid ? true : undefined}
   ></div>
-  <Button type="submit" mode="primary" ghost minW={false} disabled={!queryValid} aria-label="Search">Search</Button>
+  <Button
+    type="submit"
+    mode="primary"
+    ghost
+    minW={false}
+    disabled={!queryValid}
+    aria-label="Search">Search</Button
+  >
   <div class="sr-only" aria-live="assertive" aria-atomic="true">
     {#if !queryValid}Query syntax error{/if}
   </div>
@@ -244,7 +255,7 @@
   /* Chip styles (used by atom nodes) */
   :global(.search-chip) {
     display: inline;
-    border-radius: .25rem;
+    border-radius: 0.25rem;
     padding: 0 4px;
     margin: 0 2px;
     white-space: nowrap;
@@ -253,7 +264,7 @@
   /* Selected chip — ProseMirror adds this class when an atom node is selected */
   :global(.ProseMirror-selectednode .search-chip) {
     outline: 1px solid var(--blue-3);
-    border-radius: .25rem;
+    border-radius: 0.25rem;
   }
 
   /* Wavy underline for syntax errors */

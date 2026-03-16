@@ -50,10 +50,10 @@ Use these representative queries across viewport sizes:
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `.storybook/modes.ts` | Add mobile (375px) and tablet (768px) viewport modes if not already present. |
-| `stories/SearchEditor.stories.svelte` | Add responsive stories using viewport parameters. |
+| File                                  | Change                                                                       |
+| ------------------------------------- | ---------------------------------------------------------------------------- |
+| `.storybook/modes.ts`                 | Add mobile (375px) and tablet (768px) viewport modes if not already present. |
+| `stories/SearchEditor.stories.svelte` | Add responsive stories using viewport parameters.                            |
 
 ## Deliverable
 

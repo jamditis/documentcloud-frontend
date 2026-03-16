@@ -1,13 +1,7 @@
 import lucene from "lucene";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
 import { searchSchema } from "../prosemirror/schema";
-import type {
-  AST,
-  BinaryAST,
-  Node,
-  NodeTerm,
-  NodeRangedTerm,
-} from "lucene";
+import type { AST, BinaryAST, Node, NodeTerm, NodeRangedTerm } from "lucene";
 
 /**
  * Fields that should be rendered as field-value chips.
@@ -85,10 +79,7 @@ export function deserialize(query: string): ProseMirrorNode {
  * positioning, we use the original query string with position information
  * from the AST to extract text spans accurately.
  */
-function astToNodes(
-  ast: AST,
-  originalQuery: string,
-): ProseMirrorNode[] {
+function astToNodes(ast: AST, originalQuery: string): ProseMirrorNode[] {
   const result: ProseMirrorNode[] = [];
   // Use a position-based approach: collect "segments" with their positions,
   // then fill gaps with text from the original query.
@@ -191,8 +182,7 @@ function handleTerm(
 
   // Handle sort:field
   if (field === "sort") {
-    const direction =
-      node.prefix === "-" ? "desc" : "asc";
+    const direction = node.prefix === "-" ? "desc" : "asc";
     const sortField = node.term;
 
     const pmNode = searchSchema.nodes.sort.create({

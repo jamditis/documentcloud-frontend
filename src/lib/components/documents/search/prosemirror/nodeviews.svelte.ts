@@ -30,14 +30,23 @@ function computeChipLabel(node: ProseMirrorNode): string {
   switch (node.type.name) {
     case "field-value": {
       const prefixText =
-        attrs.prefix === "+" ? "required, " : attrs.prefix === "-" ? "excluded, " : "";
+        attrs.prefix === "+"
+          ? "required, "
+          : attrs.prefix === "-"
+            ? "excluded, "
+            : "";
       const label = attrs.displayValue ?? attrs.value ?? "";
-      const boostText = attrs.boost && attrs.boost > 1 ? `, boost ${attrs.boost}` : "";
+      const boostText =
+        attrs.boost && attrs.boost > 1 ? `, boost ${attrs.boost}` : "";
       return `${prefixText}${attrs.field}: ${label}${boostText}`;
     }
     case "range": {
       const prefixText =
-        attrs.prefix === "+" ? "required, " : attrs.prefix === "-" ? "excluded, " : "";
+        attrs.prefix === "+"
+          ? "required, "
+          : attrs.prefix === "-"
+            ? "excluded, "
+            : "";
       const lowerDesc = attrs.inclusiveLower !== false ? "from" : "after";
       const upperDesc = attrs.inclusiveUpper !== false ? "to" : "before";
       return `${prefixText}${attrs.field}: ${lowerDesc} ${attrs.lower} ${upperDesc} ${attrs.upper}`;
@@ -142,7 +151,8 @@ class SvelteNodeView implements NodeView {
     if (currentPos === undefined) return;
     const currentNode = this.view.state.doc.nodeAt(currentPos);
     if (!currentNode) return;
-    const newAttrs = typeof attrs === "function" ? attrs(currentNode.attrs) : attrs;
+    const newAttrs =
+      typeof attrs === "function" ? attrs(currentNode.attrs) : attrs;
     const tr = this.view.state.tr.setNodeMarkup(currentPos, undefined, {
       ...currentNode.attrs,
       ...newAttrs,

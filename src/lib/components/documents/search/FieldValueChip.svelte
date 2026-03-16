@@ -5,12 +5,7 @@
 -->
 <script lang="ts">
   /** Entity fields that may need async enrichment */
-  const RICH_FIELDS = new Set([
-    "user",
-    "organization",
-    "project",
-    "document",
-  ]);
+  const RICH_FIELDS = new Set(["user", "organization", "project", "document"]);
 
   interface Props {
     field?: string;
@@ -28,8 +23,7 @@
     displayValue = null,
     prefix = null,
     boost = null,
-    quoted = false,
-    locked = false
+    locked = false,
   }: Props = $props();
 
   /** Format a value for display. ISO dates become locale strings. */
@@ -48,13 +42,20 @@
   let label = $derived(displayValue ?? displayBound(value));
 
   let chipLabel = $derived(() => {
-    const prefixText = prefix === "+" ? "required, " : prefix === "-" ? "excluded, " : "";
+    const prefixText =
+      prefix === "+" ? "required, " : prefix === "-" ? "excluded, " : "";
     const boostText = boost && boost > 1 ? `, boost ${boost}` : "";
     return `${prefixText}${field}: ${label}${boostText}`;
   });
 </script>
 
-<span class="search-chip search-field-value" class:locked class:chip-required={prefix === "+"} class:chip-excluded={prefix === "-"} aria-label={chipLabel()}>
+<span
+  class="search-chip search-field-value"
+  class:locked
+  class:chip-required={prefix === "+"}
+  class:chip-excluded={prefix === "-"}
+  aria-label={chipLabel()}
+>
   {#if prefix}
     <span
       class="chip-prefix"
@@ -65,9 +66,7 @@
   <span class="chip-field">{field}</span>
   <span class="chip-value">{label}</span>
   {#if showLoading}
-    <span class="chip-loading" aria-label="Loading display name"
-      >&hellip;</span
-    >
+    <span class="chip-loading" aria-label="Loading display name">&hellip;</span>
   {/if}
   {#if boost && boost > 1}
     <span class="chip-boost">^{boost}</span>
@@ -92,7 +91,7 @@
     border-color: var(--red-2);
     color: var(--red-5);
   }
-  
+
   .search-field-value.locked {
     flex: 0 0 auto;
     opacity: 0.7;

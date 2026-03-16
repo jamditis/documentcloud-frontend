@@ -17,9 +17,7 @@ vi.mock("$lib/api/accounts", () => ({
   }),
   listOrgs: vi.fn().mockResolvedValue({
     data: {
-      results: [
-        { id: 200, name: "Acme Corp" },
-      ],
+      results: [{ id: 200, name: "Acme Corp" }],
     },
   }),
 }));
@@ -27,9 +25,7 @@ vi.mock("$lib/api/accounts", () => ({
 vi.mock("$lib/api/projects", () => ({
   list: vi.fn().mockResolvedValue({
     data: {
-      results: [
-        { id: 300, title: "Project Alpha" },
-      ],
+      results: [{ id: 300, title: "Project Alpha" }],
     },
   }),
 }));
@@ -37,9 +33,7 @@ vi.mock("$lib/api/projects", () => ({
 vi.mock("$lib/api/documents", () => ({
   search: vi.fn().mockResolvedValue({
     data: {
-      results: [
-        { id: 400, title: "Test Document" },
-      ],
+      results: [{ id: 400, title: "Test Document" }],
     },
   }),
 }));
@@ -54,7 +48,10 @@ async function renderEditor(props: Record<string, unknown> = {}) {
 }
 
 /** Simulate typing text at the current cursor position in the PM editor. */
-function typeInEditor(view: import("prosemirror-view").EditorView, text: string) {
+function typeInEditor(
+  view: import("prosemirror-view").EditorView,
+  text: string,
+) {
   const { from } = view.state.selection;
   const tr = view.state.tr.insertText(text, from);
   view.dispatch(tr);
@@ -107,7 +104,9 @@ describe("SearchEditor", () => {
       onsubmit: submitSpy,
     });
 
-    const button = screen.getByRole<HTMLButtonElement>("button", { name: /search/i });
+    const button = screen.getByRole<HTMLButtonElement>("button", {
+      name: /search/i,
+    });
     await act(() => {
       button.click();
     });
@@ -331,7 +330,9 @@ describe("SearchEditor", () => {
       expect(state.active).toBe(true);
       expect(state.loading).toBe(false);
       expect(state.suggestions.length).toBeGreaterThan(0);
-      expect(state.suggestions.some((s) => s.label === "Alice Smith")).toBe(true);
+      expect(state.suggestions.some((s) => s.label === "Alice Smith")).toBe(
+        true,
+      );
     });
 
     it("sets displayValue when selecting an async suggestion", async () => {
@@ -432,7 +433,9 @@ describe("SearchEditor", () => {
       let state = getACState(view);
       expect(state.active).toBe(true);
       expect(state.stage).toBe("field");
-      expect(state.suggestions.some((s) => s.value === "created_at")).toBe(true);
+      expect(state.suggestions.some((s) => s.value === "created_at")).toBe(
+        true,
+      );
 
       // Select created_at with Enter
       await act(() => {
@@ -480,7 +483,9 @@ describe("SearchEditor", () => {
       expect(state.stage).toBe("range");
       expect(state.suggestions.length).toBeGreaterThan(0);
       expect(state.suggestions.some((s) => s.label === "Last week")).toBe(true);
-      expect(state.suggestions.some((s) => s.label === "Last month")).toBe(true);
+      expect(state.suggestions.some((s) => s.label === "Last month")).toBe(
+        true,
+      );
     });
 
     it("selecting a shortcut inserts a range chip", async () => {
@@ -587,7 +592,9 @@ describe("SearchEditor", () => {
 
       // Find the date inputs in the range builder dropdown
       const dropdown = document.querySelector(".search-ac-range");
-      const inputs = dropdown?.querySelectorAll("input") as NodeListOf<HTMLInputElement>;
+      const inputs = dropdown?.querySelectorAll(
+        "input",
+      ) as NodeListOf<HTMLInputElement>;
       expect(inputs.length).toBe(3); // 1 fixed + 2 range
 
       // Set date values on the range inputs (skip fixed input at index 0)
@@ -595,7 +602,9 @@ describe("SearchEditor", () => {
       inputs[2]!.value = "2022-05-30";
 
       // Click the range Insert button (second one; first is the fixed section)
-      const insertBtns = dropdown?.querySelectorAll(".search-ac-insert-btn") as NodeListOf<HTMLButtonElement>;
+      const insertBtns = dropdown?.querySelectorAll(
+        ".search-ac-insert-btn",
+      ) as NodeListOf<HTMLButtonElement>;
       const insertBtn = insertBtns[1];
       await act(() => {
         insertBtn?.dispatchEvent(
@@ -629,7 +638,9 @@ describe("SearchEditor", () => {
       expect(getACState(view).stage).toBe("range");
 
       const dropdown = document.querySelector(".search-ac-range");
-      const inputs = dropdown?.querySelectorAll("input") as NodeListOf<HTMLInputElement>;
+      const inputs = dropdown?.querySelectorAll(
+        "input",
+      ) as NodeListOf<HTMLInputElement>;
       // Skip fixed input at index 0; range inputs are at 1 and 2
       inputs[1]!.value = "2023-01-01";
       inputs[2]!.value = "2023-06-30";
@@ -666,14 +677,18 @@ describe("SearchEditor", () => {
       expect(getACState(view).stage).toBe("range");
 
       const dropdown = document.querySelector(".search-ac-range");
-      const inputs = dropdown?.querySelectorAll("input") as NodeListOf<HTMLInputElement>;
+      const inputs = dropdown?.querySelectorAll(
+        "input",
+      ) as NodeListOf<HTMLInputElement>;
 
       // Skip fixed input at index 0; range inputs are at 1 and 2
       inputs[1]!.value = "10";
       inputs[2]!.value = "50";
 
       // Use the range Insert button (second one)
-      const insertBtns = dropdown?.querySelectorAll(".search-ac-insert-btn") as NodeListOf<HTMLButtonElement>;
+      const insertBtns = dropdown?.querySelectorAll(
+        ".search-ac-insert-btn",
+      ) as NodeListOf<HTMLButtonElement>;
       const insertBtn = insertBtns[1];
       await act(() => {
         insertBtn?.dispatchEvent(
@@ -735,13 +750,17 @@ describe("SearchEditor", () => {
 
       // Find the fixed value input (first input in the range builder)
       const dropdown = document.querySelector(".search-ac-range");
-      const allInputs = dropdown?.querySelectorAll("input") as NodeListOf<HTMLInputElement>;
+      const allInputs = dropdown?.querySelectorAll(
+        "input",
+      ) as NodeListOf<HTMLInputElement>;
       // Fixed section has 1 input, range section has 2 → first is the fixed input
       const fixedInput = allInputs[0];
       fixedInput!.value = "2024-01-15";
 
       // Click the first Insert button (fixed section)
-      const insertBtns = dropdown?.querySelectorAll(".search-ac-insert-btn") as NodeListOf<HTMLButtonElement>;
+      const insertBtns = dropdown?.querySelectorAll(
+        ".search-ac-insert-btn",
+      ) as NodeListOf<HTMLButtonElement>;
       await act(() => {
         insertBtns[0]?.dispatchEvent(
           new MouseEvent("mousedown", { bubbles: true }),
@@ -750,7 +769,10 @@ describe("SearchEditor", () => {
 
       let chipFound = false;
       view.state.doc.descendants((node) => {
-        if (node.type.name === "field-value" && node.attrs.field === "created_at") {
+        if (
+          node.type.name === "field-value" &&
+          node.attrs.field === "created_at"
+        ) {
           expect(node.attrs.value).toBe("2024-01-15T00:00:00Z");
           chipFound = true;
         }
@@ -772,11 +794,15 @@ describe("SearchEditor", () => {
       expect(getACState(view).stage).toBe("range");
 
       const dropdown = document.querySelector(".search-ac-range");
-      const allInputs = dropdown?.querySelectorAll("input") as NodeListOf<HTMLInputElement>;
+      const allInputs = dropdown?.querySelectorAll(
+        "input",
+      ) as NodeListOf<HTMLInputElement>;
       const fixedInput = allInputs[0];
       fixedInput!.value = "50";
 
-      const insertBtns = dropdown?.querySelectorAll(".search-ac-insert-btn") as NodeListOf<HTMLButtonElement>;
+      const insertBtns = dropdown?.querySelectorAll(
+        ".search-ac-insert-btn",
+      ) as NodeListOf<HTMLButtonElement>;
       await act(() => {
         insertBtns[0]?.dispatchEvent(
           new MouseEvent("mousedown", { bubbles: true }),
@@ -785,7 +811,10 @@ describe("SearchEditor", () => {
 
       let chipFound = false;
       view.state.doc.descendants((node) => {
-        if (node.type.name === "field-value" && node.attrs.field === "page_count") {
+        if (
+          node.type.name === "field-value" &&
+          node.attrs.field === "page_count"
+        ) {
           expect(node.attrs.value).toBe("50");
           chipFound = true;
         }
@@ -807,7 +836,9 @@ describe("SearchEditor", () => {
       expect(getACState(view).stage).toBe("range");
 
       const dropdown = document.querySelector(".search-ac-range");
-      const allInputs = dropdown?.querySelectorAll("input") as NodeListOf<HTMLInputElement>;
+      const allInputs = dropdown?.querySelectorAll(
+        "input",
+      ) as NodeListOf<HTMLInputElement>;
       const fixedInput = allInputs[0];
       fixedInput!.value = "2024-06-01";
 
@@ -820,7 +851,10 @@ describe("SearchEditor", () => {
 
       let chipFound = false;
       view.state.doc.descendants((node) => {
-        if (node.type.name === "field-value" && node.attrs.field === "created_at") {
+        if (
+          node.type.name === "field-value" &&
+          node.attrs.field === "created_at"
+        ) {
           expect(node.attrs.value).toBe("2024-06-01T00:00:00Z");
           chipFound = true;
         }
@@ -909,9 +943,9 @@ describe("SearchEditor", () => {
       const sortChip = editor.querySelector(".search-sort") as HTMLElement;
       expect(sortChip).toBeInTheDocument();
       await act(() => {
-        sortChip.closest(".search-nodeview")!.dispatchEvent(
-          new MouseEvent("click", { bubbles: true }),
-        );
+        sortChip
+          .closest(".search-nodeview")!
+          .dispatchEvent(new MouseEvent("click", { bubbles: true }));
       });
 
       // Direction should now be desc
@@ -930,7 +964,9 @@ describe("SearchEditor", () => {
         initialQuery: "sort:-created_at",
       });
       const view = component.getView();
-      const nodeview = editor.querySelector(".search-sort")!.closest(".search-nodeview")!;
+      const nodeview = editor
+        .querySelector(".search-sort")!
+        .closest(".search-nodeview")!;
 
       await act(() => {
         nodeview.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -999,7 +1035,7 @@ describe("SearchEditor", () => {
 
       // Click Require toggle
       const requiredBtn = document.querySelector(
-        ".chip-editor-toggle[title='Require']",
+        ".chip-editor button[title='Require']",
       ) as HTMLElement;
       expect(requiredBtn).not.toBeNull();
       await act(() => {
@@ -1024,7 +1060,7 @@ describe("SearchEditor", () => {
       await act(() => selectChipNode(view, "field-value"));
 
       const excludedBtn = document.querySelector(
-        ".chip-editor-toggle[title='Exclude']",
+        ".chip-editor button[title='Exclude']",
       ) as HTMLElement;
       await act(() => {
         excludedBtn.click();
@@ -1042,7 +1078,7 @@ describe("SearchEditor", () => {
       await act(() => selectChipNode(view, "field-value"));
 
       const requiredBtn = document.querySelector(
-        ".chip-editor-toggle[title='Require']",
+        ".chip-editor button[title='Require']",
       ) as HTMLElement;
       await act(() => {
         requiredBtn.click();
@@ -1153,8 +1189,12 @@ describe("SearchEditor", () => {
       await act(() => selectChipNode(view, "range"));
 
       // Should not have boost controls
-      expect(document.querySelector("[aria-label='Increase boost']")).toBeNull();
-      expect(document.querySelector("[aria-label='Decrease boost']")).toBeNull();
+      expect(
+        document.querySelector("[aria-label='Increase boost']"),
+      ).toBeNull();
+      expect(
+        document.querySelector("[aria-label='Decrease boost']"),
+      ).toBeNull();
     });
   });
 
@@ -1543,9 +1583,7 @@ describe("SearchEditor", () => {
         el.textContent?.includes("suggestion"),
       );
       expect(liveRegion).toBeTruthy();
-      expect(liveRegion!.textContent).toContain(
-        `${count} suggestion`,
-      );
+      expect(liveRegion!.textContent).toContain(`${count} suggestion`);
     });
 
     it("clears live region when autocomplete dismisses", async () => {

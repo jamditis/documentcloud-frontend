@@ -55,6 +55,7 @@ The `SvelteNodeView` class in `nodeviews.ts` needs to:
 A new Svelte component: `src/lib/components/documents/search/ChipEditor.svelte`
 
 Props:
+
 - `node`: ProseMirror node (to read current attrs)
 - `pos`: document position (from `getPos()`)
 - `view`: EditorView (to dispatch transactions)
@@ -71,16 +72,16 @@ The component uses `@floating-ui/dom` directly (like the autocomplete dropdown d
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `nodeviews.ts` | Pass `view` and `getPos` to Svelte components. Add click handling: sort toggles direction, others open ChipEditor. Update `stopEvent()` for click events. |
-| `FieldValueChip.svelte` | Accept `onEdit` callback prop, dispatch on click. |
-| `RangeChip.svelte` | Accept `onEdit` callback prop, dispatch on click. |
-| `SortChip.svelte` | Accept `onToggle` callback prop, toggle direction on click. |
-| `ChipEditor.svelte` (new) | Popover component with required/excluded toggles, boost stepper, delete button. |
-| `plugins/autocomplete.css` or new CSS | Styles for the chip editor popover. |
-| `tests/SearchEditor.test.ts` | Click chip → popover opens. Toggle required → prefix updates. Toggle sort → direction changes. Delete chip via popover. |
-| `stories/SearchEditor.stories.svelte` | Story demonstrating chip editing. |
+| File                                  | Change                                                                                                                                                    |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nodeviews.ts`                        | Pass `view` and `getPos` to Svelte components. Add click handling: sort toggles direction, others open ChipEditor. Update `stopEvent()` for click events. |
+| `FieldValueChip.svelte`               | Accept `onEdit` callback prop, dispatch on click.                                                                                                         |
+| `RangeChip.svelte`                    | Accept `onEdit` callback prop, dispatch on click.                                                                                                         |
+| `SortChip.svelte`                     | Accept `onToggle` callback prop, toggle direction on click.                                                                                               |
+| `ChipEditor.svelte` (new)             | Popover component with required/excluded toggles, boost stepper, delete button.                                                                           |
+| `plugins/autocomplete.css` or new CSS | Styles for the chip editor popover.                                                                                                                       |
+| `tests/SearchEditor.test.ts`          | Click chip → popover opens. Toggle required → prefix updates. Toggle sort → direction changes. Delete chip via popover.                                   |
+| `stories/SearchEditor.stories.svelte` | Story demonstrating chip editing.                                                                                                                         |
 
 ## Out of Scope
 

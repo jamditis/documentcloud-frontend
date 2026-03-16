@@ -40,9 +40,7 @@ const arrowRightIntoAtom: Command = (state, dispatch) => {
   const after = $from.nodeAfter;
   if (!after || !ATOM_TYPES.has(after.type.name)) return false;
   if (dispatch) {
-    dispatch(
-      state.tr.setSelection(NodeSelection.create(state.doc, $from.pos)),
-    );
+    dispatch(state.tr.setSelection(NodeSelection.create(state.doc, $from.pos)));
   }
   return true;
 };

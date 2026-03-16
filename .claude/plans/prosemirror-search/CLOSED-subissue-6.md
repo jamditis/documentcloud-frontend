@@ -11,6 +11,7 @@ Fill the identified test coverage gaps in the SearchEditor integration tests. Th
 No test covers the full cycle: type field prefix → select field from dropdown → select value → verify chip node in document with correct attributes.
 
 **Tests to add:**
+
 - Type `acc` → ArrowDown to `access` → Enter → dropdown shows values → ArrowDown to `public` → Enter → verify `field-value` node with `{ field: "access", value: "public" }`.
 - Type `sort` → select `sort` → select `Created (newest)` → verify `sort` node with `{ field: "created_at", direction: "asc" }`.
 
@@ -19,6 +20,7 @@ No test covers the full cycle: type field prefix → select field from dropdown 
 Arrow key navigation, Enter/Tab selection, and Escape dismissal are implemented but not fully tested at the integration level.
 
 **Tests to add:**
+
 - ArrowDown cycles through suggestions, wraps at bottom.
 - ArrowUp cycles in reverse, wraps at top.
 - Enter selects the highlighted suggestion.
@@ -30,6 +32,7 @@ Arrow key navigation, Enter/Tab selection, and Escape dismissal are implemented 
 The `Mod+/` keystroke opens the full field list. No integration test for this.
 
 **Tests to add:**
+
 - Press Mod+/ in empty editor → dropdown opens with all fields.
 - Press Mod+/ with cursor after text → dropdown opens with all fields (not filtered).
 - Press Escape after Mod+/ → dropdown closes.
@@ -39,6 +42,7 @@ The `Mod+/` keystroke opens the full field list. No integration test for this.
 Click and hover behaviors in the autocomplete dropdown.
 
 **Tests to add:**
+
 - Hover over a suggestion → it becomes highlighted (`aria-selected="true"`).
 - Click a suggestion → it's selected and inserted.
 - Click outside the dropdown → dropdown dismisses.
@@ -48,6 +52,7 @@ Click and hover behaviors in the autocomplete dropdown.
 Navigation around and deletion of chips.
 
 **Tests to add:**
+
 - Arrow keys move cursor around chips (before/after).
 - When a chip is selected (node selection), Backspace deletes it.
 - When a chip is selected, Delete key deletes it.
@@ -58,6 +63,7 @@ Navigation around and deletion of chips.
 The `aria-live` region announces suggestion counts but this isn't tested.
 
 **Tests to add:**
+
 - When autocomplete activates with 3 suggestions, live region text includes "3 suggestions available".
 - When suggestions are filtered to 1, live region updates to "1 suggestion available".
 - When autocomplete dismisses, live region is cleared.
@@ -65,14 +71,15 @@ The `aria-live` region announces suggestion counts but this isn't tested.
 ### 7. Edge Cases (Priority: Low)
 
 **Tests to add:**
+
 - Typing a complete field name that exactly matches (e.g., `access`) still shows suggestions.
 - Backspace while autocomplete is open updates the filter.
 - Rapid typing doesn't produce stale suggestion results (debounce correctness).
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
+| File                         | Change                                             |
+| ---------------------------- | -------------------------------------------------- |
 | `tests/SearchEditor.test.ts` | Add all test cases above in new `describe` blocks. |
 
 ## Notes

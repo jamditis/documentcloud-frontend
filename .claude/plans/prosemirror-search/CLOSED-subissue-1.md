@@ -63,8 +63,8 @@ interface RangeFieldConfig {
     label: string;
     lower: string;
     upper: string;
-    inclusiveLower?: boolean;  // default true
-    inclusiveUpper?: boolean;  // default true
+    inclusiveLower?: boolean; // default true
+    inclusiveUpper?: boolean; // default true
   }>;
 }
 ```
@@ -104,14 +104,14 @@ https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/date
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `autocomplete-data.ts` | Add `RangeFieldConfig`, `RANGE_CONFIGS`, `getRangeConfig()`. Change `created_at`, `updated_at`, `page_count` to `insertBehavior: "range-chip"`. |
-| `plugins/autocomplete.ts` | Add `"range"` stage to state. Handle range field selection → range stage transition. Render range builder UI. Handle shortcut selection and custom range insertion. |
-| `plugins/autocomplete.css` | Styles for range builder (inputs, shortcut list, separator). |
-| `tests/autocomplete.test.ts` | Tests for `getRangeConfig`, range shortcuts data. |
-| `tests/SearchEditor.test.ts` | Integration tests: select `created_at` → shortcuts appear → select shortcut → range chip inserted. |
-| `stories/SearchEditor.stories.svelte` | Story with range autocomplete interaction. |
+| File                                  | Change                                                                                                                                                              |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `autocomplete-data.ts`                | Add `RangeFieldConfig`, `RANGE_CONFIGS`, `getRangeConfig()`. Change `created_at`, `updated_at`, `page_count` to `insertBehavior: "range-chip"`.                     |
+| `plugins/autocomplete.ts`             | Add `"range"` stage to state. Handle range field selection → range stage transition. Render range builder UI. Handle shortcut selection and custom range insertion. |
+| `plugins/autocomplete.css`            | Styles for range builder (inputs, shortcut list, separator).                                                                                                        |
+| `tests/autocomplete.test.ts`          | Tests for `getRangeConfig`, range shortcuts data.                                                                                                                   |
+| `tests/SearchEditor.test.ts`          | Integration tests: select `created_at` → shortcuts appear → select shortcut → range chip inserted.                                                                  |
+| `stories/SearchEditor.stories.svelte` | Story with range autocomplete interaction.                                                                                                                          |
 
 ## Out of Scope
 

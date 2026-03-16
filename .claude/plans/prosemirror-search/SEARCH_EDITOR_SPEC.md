@@ -15,83 +15,83 @@ DocumentCloud's search is powered by Solr. The editor must support the full quer
 
 ### Text Search
 
-| Syntax | Example | Description |
-|--------|---------|-------------|
-| Single term | `report` | Matches documents containing the word |
-| Phrase | `"the mueller report"` | Matches the exact phrase |
-| Wildcard | `J*`, `?oat` | `*` matches zero or more chars, `?` matches one |
-| Fuzzy | `book~`, `book~1` | Edit-distance matching (default distance 2) |
-| Proximity | `"mueller report"~10` | Words within N words of each other |
-| Boosting | `mueller^4 report` | Alter ranking weight of a term |
+| Syntax      | Example                | Description                                     |
+| ----------- | ---------------------- | ----------------------------------------------- |
+| Single term | `report`               | Matches documents containing the word           |
+| Phrase      | `"the mueller report"` | Matches the exact phrase                        |
+| Wildcard    | `J*`, `?oat`           | `*` matches zero or more chars, `?` matches one |
+| Fuzzy       | `book~`, `book~1`      | Edit-distance matching (default distance 2)     |
+| Proximity   | `"mueller report"~10`  | Words within N words of each other              |
+| Boosting    | `mueller^4 report`     | Alter ranking weight of a term                  |
 
 ### Boolean Operators and Grouping
 
-| Syntax | Example | Description |
-|--------|---------|-------------|
-| `AND` | `mueller AND report` | Both terms required |
-| `OR` | `mueller OR report` | Either term matches (default) |
-| `NOT` | `NOT mueller` | Exclude term |
-| `+` prefix | `+mueller` | Require term |
-| `-` prefix | `-report` | Exclude term |
-| Parentheses | `(mueller OR watergate) AND report` | Group terms for precedence |
+| Syntax      | Example                             | Description                   |
+| ----------- | ----------------------------------- | ----------------------------- |
+| `AND`       | `mueller AND report`                | Both terms required           |
+| `OR`        | `mueller OR report`                 | Either term matches (default) |
+| `NOT`       | `NOT mueller`                       | Exclude term                  |
+| `+` prefix  | `+mueller`                          | Require term                  |
+| `-` prefix  | `-report`                           | Exclude term                  |
+| Parentheses | `(mueller OR watergate) AND report` | Group terms for precedence    |
 
 ### Filter Fields
 
 Filter fields narrow results by document properties. By default, multiple filter fields of the same type are `OR`ed together, and different field types are `AND`ed.
 
-| Field | Format | Notes |
-|-------|--------|-------|
-| `user` | `user:102112` or `user:mitchell-kotler-1` | Alias: `account` |
-| `organization` | `organization:1` or `organization:muckrock-1` | Alias: `group` |
-| `project` | `project:214246` or `project:panama-papers-1` | Alias: `projects` |
-| `document` | `document:20059100` | Alias: `id` |
-| `access` | `access:public` | Values: `public`, `organization`, `private` |
-| `status` | `status:success` | Values: `success`, `readable`, `pending`, `error`, `nofile` |
-| `language` | `language:eng` | ISO 639-3 codes |
-| `tag` | `tag:significant` | Alias for `data__tag` |
-| `data_*` | `data_Folder:"Environmental docs"` | Arbitrary key/value metadata |
-| `slug` | `slug:the-mueller-report` | Document slug |
+| Field          | Format                                        | Notes                                                       |
+| -------------- | --------------------------------------------- | ----------------------------------------------------------- |
+| `user`         | `user:102112` or `user:mitchell-kotler-1`     | Alias: `account`                                            |
+| `organization` | `organization:1` or `organization:muckrock-1` | Alias: `group`                                              |
+| `project`      | `project:214246` or `project:panama-papers-1` | Alias: `projects`                                           |
+| `document`     | `document:20059100`                           | Alias: `id`                                                 |
+| `access`       | `access:public`                               | Values: `public`, `organization`, `private`                 |
+| `status`       | `status:success`                              | Values: `success`, `readable`, `pending`, `error`, `nofile` |
+| `language`     | `language:eng`                                | ISO 639-3 codes                                             |
+| `tag`          | `tag:significant`                             | Alias for `data__tag`                                       |
+| `data_*`       | `data_Folder:"Environmental docs"`            | Arbitrary key/value metadata                                |
+| `slug`         | `slug:the-mueller-report`                     | Document slug                                               |
 
 ### Date/Time Fields
 
-| Field | Format | Notes |
-|-------|--------|-------|
-| `created_at` | `created_at:[NOW-1MONTH TO *]` | Supports date math |
-| `updated_at` | `updated_at:["2024-01-01T00:00:00Z" TO "2024-01-31T00:00:00Z"]` | Full ISO 8601 |
+| Field        | Format                                                          | Notes              |
+| ------------ | --------------------------------------------------------------- | ------------------ |
+| `created_at` | `created_at:[NOW-1MONTH TO *]`                                  | Supports date math |
+| `updated_at` | `updated_at:["2024-01-01T00:00:00Z" TO "2024-01-31T00:00:00Z"]` | Full ISO 8601      |
 
 Date math: `NOW`, `NOW-1MONTH`, `NOW+2DAYS`, `NOW/HOUR` (rounding). Units: `YEAR`, `MONTH`, `DAY`, `HOUR`, `MINUTE`, `SECOND`, `MILLISECOND`.
 
 ### Numeric Fields
 
-| Field | Format | Notes |
-|-------|--------|-------|
+| Field        | Format                                  | Notes          |
+| ------------ | --------------------------------------- | -------------- |
 | `page_count` | `page_count:41` or `pages:[100 TO 200]` | Alias: `pages` |
 
 ### Text-Specific Fields
 
-| Field | Format | Notes |
-|-------|--------|-------|
-| `title` | `title:Mueller*` | Document title |
-| `source` | `source:gema` | Document source |
-| `description` | `description:Mueller*` | Document description |
-| `text` | `text:Russian` | Full document text. Alias: `doctext` |
-| `page_no_*` | `page_no_4:Russian` | Text on a specific page |
+| Field         | Format                 | Notes                                |
+| ------------- | ---------------------- | ------------------------------------ |
+| `title`       | `title:Mueller*`       | Document title                       |
+| `source`      | `source:gema`          | Document source                      |
+| `description` | `description:Mueller*` | Document description                 |
+| `text`        | `text:Russian`         | Full document text. Alias: `doctext` |
+| `page_no_*`   | `page_no_4:Russian`    | Text on a specific page              |
 
 ### Range Syntax
 
-| Syntax | Meaning |
-|--------|---------|
-| `[min TO max]` | Inclusive range |
-| `{min TO max}` | Exclusive range |
+| Syntax         | Meaning                                  |
+| -------------- | ---------------------------------------- |
+| `[min TO max]` | Inclusive range                          |
+| `{min TO max}` | Exclusive range                          |
 | `[min TO max}` | Mixed (inclusive lower, exclusive upper) |
-| `[min TO *]` | Open-ended upper bound |
-| `[* TO max]` | Open-ended lower bound |
+| `[min TO *]`   | Open-ended upper bound                   |
+| `[* TO max]`   | Open-ended lower bound                   |
 
 ### Sort
 
-| Syntax | Example | Description |
-|--------|---------|-------------|
-| `sort:field` | `sort:created_at` | Sort ascending |
+| Syntax        | Example            | Description     |
+| ------------- | ------------------ | --------------- |
+| `sort:field`  | `sort:created_at`  | Sort ascending  |
 | `sort:-field` | `sort:-page_count` | Sort descending |
 
 Sort fields: `score`, `created_at`, `page_count`, `title`, `source`, `data_*`.
@@ -129,7 +129,7 @@ ProseMirror is the **source of truth** for the query. Serialization to a Lucene 
 
 The previous implementation maintained a continuous loop: edit → serialize → re-parse → rebuild document. This caused complexity around infinite loop prevention, cursor position preservation, and intermediate states.
 
-The new approach eliminates this entirely. The PM document *is* the query. We serialize only when we need a string (form submission, URL update). We deserialize only when we need to populate the editor (loading a saved search, reading a URL query param).
+The new approach eliminates this entirely. The PM document _is_ the query. We serialize only when we need a string (form submission, URL update). We deserialize only when we need to populate the editor (loading a saved search, reading a URL query param).
 
 ### Schema
 
@@ -141,48 +141,51 @@ The schema defines four content node types within a single `paragraph` block.
 Represents a `field:value` pair for fields where the value is a selection from a known set or a database entity — not free-text scoring fields. Rendered as a chip via Svelte NodeView.
 
 **Chipped fields** (rendered as `field-value` nodes):
+
 - `user`, `organization`, `project`, `document` — database entities with display names
 - `access`, `status`, `language` — enumerated values
 - `tag` — known tag values
 
 **Plain text fields** (remain as typed text, not chipped):
+
 - `title`, `source`, `description`, `text`, `page_no_*` — free-text scoring fields
 
 **Data fields** (chipped, with preloaded suggestions):
+
 - `data_*` — arbitrary key/value metadata. Keys and values are populated from current search results. Two-stage autocomplete: first select a data key, then select a value.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `field` | string | Field name (e.g., `user`, `access`, `project`) |
-| `value` | string | Raw value (e.g., `102112`, `public`) |
-| `displayValue` | string? | Human-readable label (e.g., `Mitchell Kotler`) |
-| `prefix` | `+` \| `-` \| null | Required/excluded modifier |
-| `boost` | number? | Boost factor |
-| `quoted` | boolean | Whether value was/should be quoted |
+| Attribute      | Type               | Description                                    |
+| -------------- | ------------------ | ---------------------------------------------- |
+| `field`        | string             | Field name (e.g., `user`, `access`, `project`) |
+| `value`        | string             | Raw value (e.g., `102112`, `public`)           |
+| `displayValue` | string?            | Human-readable label (e.g., `Mitchell Kotler`) |
+| `prefix`       | `+` \| `-` \| null | Required/excluded modifier                     |
+| `boost`        | number?            | Boost factor                                   |
+| `quoted`       | boolean            | Whether value was/should be quoted             |
 
 Serializes to: `[prefix][field]:["]value["][^boost]`
 
 **`range`** (inline, atom)
 Represents a range query. Rendered as a chip via Svelte NodeView.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `field` | string | Field name (e.g., `created_at`, `pages`) |
-| `lower` | string | Lower bound (value or `*`) |
-| `upper` | string | Upper bound (value or `*`) |
-| `inclusiveLower` | boolean | `[` vs `{` |
-| `inclusiveUpper` | boolean | `]` vs `}` |
-| `prefix` | `+` \| `-` \| null | Required/excluded modifier |
+| Attribute        | Type               | Description                              |
+| ---------------- | ------------------ | ---------------------------------------- |
+| `field`          | string             | Field name (e.g., `created_at`, `pages`) |
+| `lower`          | string             | Lower bound (value or `*`)               |
+| `upper`          | string             | Upper bound (value or `*`)               |
+| `inclusiveLower` | boolean            | `[` vs `{`                               |
+| `inclusiveUpper` | boolean            | `]` vs `}`                               |
+| `prefix`         | `+` \| `-` \| null | Required/excluded modifier               |
 
 Serializes to: `[prefix][field]:[lower TO upper]` (with `[]` or `{}` per inclusivity)
 
 **`sort`** (inline, atom)
 Represents a sort directive. Rendered as a chip via Svelte NodeView.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `field` | string | Sort field name |
-| `direction` | `asc` \| `desc` | Sort direction |
+| Attribute   | Type            | Description     |
+| ----------- | --------------- | --------------- |
+| `field`     | string          | Sort field name |
+| `direction` | `asc` \| `desc` | Sort direction  |
 
 Serializes to: `sort:[-]field`
 
@@ -196,6 +199,7 @@ Serializes as-is: whatever the user typed.
 A plugin that scans the document text after each transaction and applies **decorations** (not marks) for visual styling. Decorations are ephemeral and render-only; they don't affect the document model or serialization.
 
 **Decorated patterns:**
+
 - `AND`, `OR`, `NOT` — matched as whole words (`\b(AND|OR|NOT)\b`), styled with a subtle background and monospace font
 - `(`, `)` — parentheses get a subtle background; matching pairs could be highlighted on cursor proximity
 - `+`, `-` — prefix operators before terms, colored green/red respectively
@@ -229,11 +233,13 @@ A ProseMirror plugin that provides contextual suggestions as the user types.
 
 **Insertion behavior:**
 When the user completes a selection, the plugin:
+
 1. Replaces the typed text with the appropriate atomic node (`field-value`, `range`, or `sort`)
 2. Adds a space after the node
 3. Places the cursor after the space
 
 **Activation:**
+
 - Triggered when the user types 1+ alphanumeric characters that could be a field name
 - Also triggered by an explicit keystroke (e.g., `/` or a toolbar button) to show all fields
 - Dismissed by `Escape`, clicking away, or deleting back past the trigger point
@@ -242,6 +248,7 @@ When the user completes a selection, the plugin:
 Dropdown positioned below the cursor using a positioning library (e.g., Floating UI).
 
 **Accessibility requirements (built in from the start):**
+
 - Dropdown has `role="listbox"`
 - Each suggestion has `role="option"` with a unique `id`
 - The editor input uses `aria-expanded` to indicate dropdown visibility
@@ -260,6 +267,7 @@ serialize(doc: ProseMirrorNode | Fragment): string
 The function accepts either a full document node or a `Fragment` (for copy/paste of partial selections).
 
 The walk is straightforward:
+
 - **Text nodes**: emit their text content verbatim
 - **`field-value` nodes**: emit `[prefix][field]:["]value["][~fuzzy][^boost]`
 - **`range` nodes**: emit `[prefix][field]:[[ or {]lower TO upper[]or}]`
@@ -289,11 +297,12 @@ deserialize(query: string, schema: Schema): ProseMirrorNode
 This uses the `lucene` npm package to parse the string into an AST, then converts recognized patterns into the appropriate node types. Anything not recognized as a structured node stays as text.
 
 This runs in three scenarios:
+
 1. **Loading a saved search** (from URL query params or stored filters)
 2. **Pasting a query string** — paste is always deserialized. Decorations on operators like `NOT` are truthful: they reflect how Solr will actually interpret the text, which helps users catch unintended boolean logic.
 3. **Copy** — when the user copies a selection, the selected fragment is serialized to a Lucene string and written to the clipboard as plain text.
 
-It does *not* run continuously during editing.
+It does _not_ run continuously during editing.
 
 **API enrichment**: After deserialization, field-value nodes for `user`, `organization`, and `project` are enriched with display names via parallel async API calls. While loading, chips display the raw value (e.g., `102112`) alongside a small loading indicator. Once the API responds, a transaction updates the `displayValue` attribute. Enrichment transactions locate their target node by matching `field` + `value` attributes, not by stored document positions, which ensures correctness even when multiple enrichments resolve concurrently.
 
@@ -408,7 +417,7 @@ Note: `title:Mueller*` stays as plain text. Text-specific fields are scoring hin
 ### Loading a saved query
 
 1. URL contains `?q=+user:102112+AND+access:private`
-2. `deserialize()` runs, producing a PM doc with a `field-value` node for user, text ` AND `, and a `field-value` node for access
+2. `deserialize()` runs, producing a PM doc with a `field-value` node for user, text `AND`, and a `field-value` node for access
 3. Async API call enriches user node with display name
 4. Editor renders the structured, chip-ified query
 
@@ -448,12 +457,14 @@ We take a **red-green TDD** approach: write a failing test first, then implement
 Establish the foundation: evaluate the `lucene` npm package against real DocumentCloud queries, then build a ProseMirror editor that can hold structured nodes and serialize them.
 
 **Parser evaluation step:**
+
 - Test the `lucene` npm package against real DocumentCloud query strings, documenting what parses correctly and what doesn't
 - Key syntax to evaluate: `sort:field` / `sort:-field` (not standard Lucene), date math tokens (`NOW-1MONTH`, `NOW/DAY`) inside range values, `data_*` field names with arbitrary suffixes, prefix operators (`+`/`-`), and range syntax with mixed brackets
 - If gaps are found, determine the strategy: pre-process strings before parsing, post-process the AST, or use a different/custom parser
 - Unit tests serve as the permanent record of what works and what doesn't
 
 **Core editor:**
+
 - Define the ProseMirror schema (`doc`, `paragraph`, `text`, `field-value`, `range`, `sort`) with whitespace constraints between atom nodes
 - Implement `serialize()` — walk the doc or fragment, produce a Lucene string
 - Build the editor Svelte component with basic ProseMirror setup
@@ -461,6 +472,7 @@ Establish the foundation: evaluate the `lucene` npm package against real Documen
 - Write a Storybook story for the editor in isolation
 
 **Tests (write first):**
+
 - `lucene-parser.test.ts` — Parser evaluation tests:
   - Standard Lucene: `field:value`, `"phrase"`, `field:[min TO max]`, `AND`/`OR`/`NOT`, `+`/`-` prefixes
   - DocumentCloud extensions: `sort:created_at`, `sort:-page_count`, `data_Folder:"test"`
@@ -490,6 +502,7 @@ Add visual styling for operators and grouping without touching the schema.
 - Optional: matching parenthesis highlighting on cursor proximity
 
 **Tests (write first):**
+
 - `SearchEditor.test.ts` — Component tests for decoration rendering:
   - Type `mueller AND report` → `AND` is wrapped in an element with the operator decoration class
   - Type `(foo OR bar)` → `OR` gets operator class, `(` and `)` get grouping class
@@ -509,6 +522,7 @@ Render atomic nodes as interactive chips.
 - Handle chip selection, deletion (backspace), and cursor navigation around chips
 
 **Tests (write first):**
+
 - `FieldValueChip.test.ts` — NodeView component tests:
   - Renders field label and value text (e.g., "User: 102112")
   - Shows display value when available (e.g., "User: Mitchell Kotler")
@@ -516,7 +530,7 @@ Render atomic nodes as interactive chips.
   - Shows prefix indicator for `+` (required) and `-` (excluded)
   - Renders boost badge when boost is set
 - `RangeChip.test.ts`:
-  - Renders field and bounds (e.g., "Created: NOW-1MONTH to *")
+  - Renders field and bounds (e.g., "Created: NOW-1MONTH to \*")
   - Distinguishes inclusive `[]` vs exclusive `{}` visually
 - `SortChip.test.ts`:
   - Renders field name and direction arrow
@@ -540,6 +554,7 @@ Load existing queries into the editor. This comes before autocomplete so that co
 **Undo/redo:** Default ProseMirror history behavior applies. Undoing a chip insertion (from paste or autocomplete) restores the original text without reopening any UI.
 
 **Tests (write first):**
+
 - `deserialize.test.ts` — Pure function tests:
   - `+user:102112` → doc with `field-value` node `{ field: "user", value: "102112", prefix: "+" }`
   - `"steve jobs" macintosh` → doc with plain text
@@ -576,6 +591,7 @@ Guide users through field and value selection.
 - Build with accessibility from the start: `role="listbox"`, `role="option"`, `aria-activedescendant`, `aria-expanded`, `aria-autocomplete="list"`, `aria-live` region for suggestion count
 
 **Tests (write first):**
+
 - `autocomplete.test.ts` — Plugin logic tests:
   - Typing `us` returns suggestions containing `user`
   - Typing `acc` returns `access`
@@ -606,6 +622,7 @@ Connect value suggestions to live data.
 - Fetch and cache display names for enriching chips after deserialization
 
 **Tests (write first):**
+
 - `autocomplete.test.ts` — Tests with mocked API responses:
   - Select `user` field → type "mitchell" → mock API returns user results → suggestions shown with display names
   - Select a user → `field-value` node created with `value: "mitchell-kotler-1"` and `displayValue: "Mitchell Kotler"`
@@ -630,6 +647,7 @@ Polish the experience.
 - Mobile/touch considerations
 
 **Tests (write first):**
+
 - Range builder: selecting `created_at` → date shortcut suggestions shown → selecting "Last month" inserts range node with `NOW-1MONTH TO *`
 - Click-to-edit: click a chip → value picker reopens → change value → chip updates
 - Accessibility: chips are announced by screen readers; keyboard-only users can navigate, select, and delete chips

@@ -11,6 +11,7 @@ Audit the following areas against WCAG 2.1 AA guidelines and ARIA authoring prac
 ### 1. ARIA Attributes on the Autocomplete
 
 **Currently implemented:**
+
 - `aria-autocomplete="list"` on editor DOM
 - `aria-expanded="true"/"false"` toggled with dropdown visibility
 - `aria-owns="[dropdownId]"` pointing to dropdown container
@@ -21,6 +22,7 @@ Audit the following areas against WCAG 2.1 AA guidelines and ARIA authoring prac
 - `aria-live="polite"` region announcing suggestion count
 
 **Audit questions:**
+
 - Is the combobox pattern correct per [WAI-ARIA Combobox](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/)?
 - Should the editor have `role="combobox"`? (It's currently a plain `div` with `role="textbox"` from ProseMirror.)
 - Is `aria-busy="true"` needed during async loading states?
@@ -30,6 +32,7 @@ Audit the following areas against WCAG 2.1 AA guidelines and ARIA authoring prac
 ### 2. Keyboard Navigation
 
 **Currently implemented:**
+
 - Arrow Up/Down to navigate suggestions
 - Enter/Tab to select a suggestion
 - Escape to dismiss autocomplete
@@ -38,6 +41,7 @@ Audit the following areas against WCAG 2.1 AA guidelines and ARIA authoring prac
 - Enter to submit form (when autocomplete closed)
 
 **Audit questions:**
+
 - Can a keyboard-only user complete all workflows (search, select field, select value, edit chip, delete chip)?
 - Is focus management correct when the dropdown opens/closes?
 - Does Tab behave as expected (move to next focusable element vs. select suggestion)?
@@ -46,11 +50,13 @@ Audit the following areas against WCAG 2.1 AA guidelines and ARIA authoring prac
 ### 3. Chip Accessibility
 
 **Current state:**
+
 - Chips are `contentEditable="false"` inline atoms.
 - ProseMirror handles selection (arrow keys move cursor around chips).
 - No `role`, `aria-label`, or `aria-description` on chip elements.
 
 **Audit questions:**
+
 - Should chips have `role="group"` or another landmark role?
 - Should chips announce their content to screen readers (e.g., "User: Mitchell Kotler, required")?
 - When a chip is selected, is that state announced?
@@ -59,6 +65,7 @@ Audit the following areas against WCAG 2.1 AA guidelines and ARIA authoring prac
 ### 4. Form Integration
 
 **Audit questions:**
+
 - Does the search form have an accessible label?
 - Is the submit button properly labeled?
 - Is the relationship between the editor and the submit button clear?
@@ -66,6 +73,7 @@ Audit the following areas against WCAG 2.1 AA guidelines and ARIA authoring prac
 ### 5. Color and Contrast
 
 **Audit questions:**
+
 - Do operator decorations (AND/OR/NOT backgrounds) meet contrast requirements?
 - Do chip colors (blue, purple backgrounds) meet contrast requirements against their text?
 - Do prefix indicators (green for +, orange for -) rely solely on color?
@@ -73,6 +81,7 @@ Audit the following areas against WCAG 2.1 AA guidelines and ARIA authoring prac
 ## Deliverable
 
 A markdown document (or additions to this file) with:
+
 1. Findings for each section above.
 2. Severity rating (critical, major, minor) for each issue found.
 3. Recommended fixes (as future work items, not implemented here).
@@ -173,6 +182,7 @@ A keyboard-only user can: type to search, navigate suggestions with arrows, sele
 All three chip components (`FieldValueChip.svelte`, `RangeChip.svelte`, `SortChip.svelte`) render as plain `<span class="search-chip">` with no semantic role. The NodeView wrapper span in `nodeviews.svelte.ts` ~line 47 also lacks ARIA attributes. Screen readers will read the raw text content but won't identify them as interactive elements or structured query parts.
 
 **Recommended fix:** Add `aria-label` to each chip with a descriptive announcement:
+
 - FieldValueChip: "User: Mitchell Kotler, required" (including prefix meaning)
 - RangeChip: "Created at: from 1 month ago to now, inclusive"
 - SortChip: "Sort by page count, ascending"
@@ -220,6 +230,7 @@ For chip prefixes (`FieldValueChip.svelte`, `RangeChip.svelte`), the `+`/`-` tex
 #### Finding 5.2 — Contrast of decoration backgrounds needs verification (Minor)
 
 The following CSS custom properties are used for decoration backgrounds but their actual hex values depend on the theme:
+
 - `var(--purple-1)` for AND/OR/NOT operator backgrounds
 - `var(--gray-1)` for parenthesis backgrounds
 - `var(--green-3)` for required prefix text
@@ -237,21 +248,21 @@ The following CSS custom properties are used for decoration backgrounds but thei
 
 ## Summary
 
-| # | Issue | Severity | Section | Status |
-|---|-------|----------|---------|--------|
-| 3.1 | Chips have no `role` or `aria-label` | Critical | Chips | **Fixed** |
-| 1.1 | Editor textbox has no accessible name | Critical | ARIA | **Fixed** |
-| 5.1 | Prefix decorations use color only (mitigated by text) | Critical (mitigated) | Color | No fix needed |
-| 1.4 | Autocomplete options lack concatenated `aria-label` | Major | ARIA | **Fixed** |
-| 1.5 | No live region announcement for stage transitions | Major | ARIA | **Fixed** |
-| 2.2 | ChipEditor dialog has no focus trap | Major | Keyboard | **Fixed** |
-| 2.3 | RangeBuilder keyboard navigation incomplete | Major | Keyboard | Deferred |
-| 3.2 | Chips not independently keyboard-focusable | Major | Chips | Deferred |
-| 3.3 | Chip selection state not announced | Major | Chips | Deferred |
-| 4.1 | No `aria-invalid` when query is invalid | Major | Form | **Fixed** |
-| 5.3 | Syntax error indicator is visual-only | Major | Color | **Fixed** |
-| 1.2 | `aria-owns` should be `aria-controls` | Minor | ARIA | **Fixed** |
-| 1.3 | Dropdown listbox has no `aria-label` | Minor | ARIA | **Fixed** |
-| 1.6 | No `aria-busy` during async loading | Minor | ARIA | **Fixed** |
-| 4.2 | Form has no accessible label | Minor | Form | **Fixed** |
-| 5.2 | Decoration contrast needs verification | Minor | Color | Deferred |
+| #   | Issue                                                 | Severity             | Section  | Status        |
+| --- | ----------------------------------------------------- | -------------------- | -------- | ------------- |
+| 3.1 | Chips have no `role` or `aria-label`                  | Critical             | Chips    | **Fixed**     |
+| 1.1 | Editor textbox has no accessible name                 | Critical             | ARIA     | **Fixed**     |
+| 5.1 | Prefix decorations use color only (mitigated by text) | Critical (mitigated) | Color    | No fix needed |
+| 1.4 | Autocomplete options lack concatenated `aria-label`   | Major                | ARIA     | **Fixed**     |
+| 1.5 | No live region announcement for stage transitions     | Major                | ARIA     | **Fixed**     |
+| 2.2 | ChipEditor dialog has no focus trap                   | Major                | Keyboard | **Fixed**     |
+| 2.3 | RangeBuilder keyboard navigation incomplete           | Major                | Keyboard | Deferred      |
+| 3.2 | Chips not independently keyboard-focusable            | Major                | Chips    | Deferred      |
+| 3.3 | Chip selection state not announced                    | Major                | Chips    | Deferred      |
+| 4.1 | No `aria-invalid` when query is invalid               | Major                | Form     | **Fixed**     |
+| 5.3 | Syntax error indicator is visual-only                 | Major                | Color    | **Fixed**     |
+| 1.2 | `aria-owns` should be `aria-controls`                 | Minor                | ARIA     | **Fixed**     |
+| 1.3 | Dropdown listbox has no `aria-label`                  | Minor                | ARIA     | **Fixed**     |
+| 1.6 | No `aria-busy` during async loading                   | Minor                | ARIA     | **Fixed**     |
+| 4.2 | Form has no accessible label                          | Minor                | Form     | **Fixed**     |
+| 5.2 | Decoration contrast needs verification                | Minor                | Color    | Deferred      |

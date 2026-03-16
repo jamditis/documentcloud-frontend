@@ -1,6 +1,6 @@
 <!--
-  ChipEditor: A popover for editing chip modifiers (required/excluded, boost, delete).
-  Anchored to a chip element using @floating-ui/dom.
+  ChipEditor is a popover for editing chip modifiers (required/excluded, boost, delete).
+  It's anchored to a chip element using @floating-ui/dom.
 -->
 <script lang="ts">
   import { onMount, onDestroy, tick } from "svelte";
@@ -9,23 +9,14 @@
   import Button from "$lib/components/common/Button.svelte";
 
   interface Props {
-    /** The chip's current prefix: "+", "-", or null */
-    prefix?: string | null;
-    /** The chip's current boost value (field-value only, null for range) */
+    prefix?: "+" | "-" | null;
     boost?: number | null;
-    /** Whether to show the boost control */
     showBoost?: boolean;
-    /** The DOM element to anchor the popover to */
-    anchor: HTMLElement;
-    /** Callback when prefix changes */
+    anchor: HTMLElement; // DOM element to anchor the popover to
     onPrefixChange: (prefix: string | null) => void;
-    /** Callback when boost changes */
     onBoostChange?: ((boost: number | null) => void) | null;
-    /** Callback to delete the chip */
     onDelete: () => void;
-    /** Callback when the popover should close */
     onClose: () => void;
-    /** Callback to return focus to the editor */
     onFocusEditor: () => void;
   }
 
@@ -38,12 +29,12 @@
     onBoostChange = null,
     onDelete,
     onClose,
-    onFocusEditor
+    onFocusEditor,
   }: Props = $props();
 
   let popover: HTMLElement | undefined = $state();
 
-  /** Focus the popover container (called externally via ArrowDown). */
+  /** A helper to focus the popover container from the SearchEditor */
   export function focus() {
     popover?.focus();
   }
@@ -66,7 +57,7 @@
 
   function decrementBoost() {
     const current = boost ?? 1;
-    if (current <= 1) {
+    if (current <= 2) {
       onBoostChange?.(null);
     } else {
       onBoostChange?.(current - 1);
@@ -89,18 +80,25 @@
       onFocusEditor();
     } else if (e.key === "Tab" && popover) {
       // Return focus to the editor when tabbing past the boundaries
-      const focusable = Array.from(popover.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), [tabindex="0"], input:not([disabled])'
-      ));
+      const focusable = Array.from(
+        popover.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [tabindex="0"], input:not([disabled])',
+        ),
+      );
       if (focusable.length === 0) return;
       const first = focusable[0]!;
       const last = focusable[focusable.length - 1]!;
       if (e.shiftKey) {
-        if (document.activeElement === first || document.activeElement === popover) {
+        // Tabbing backwards
+        if (
+          document.activeElement === first ||
+          document.activeElement === popover
+        ) {
           e.preventDefault();
           onFocusEditor();
         }
       } else {
+        // Tabbing forwards
         if (document.activeElement === last) {
           e.preventDefault();
           onFocusEditor();
@@ -110,7 +108,11 @@
   }
 
   function handleClickOutside(e: MouseEvent) {
-    if (popover && !popover.contains(e.target as Node) && !anchor.contains(e.target as Node)) {
+    if (
+      popover &&
+      !popover.contains(e.target as Node) &&
+      !anchor.contains(e.target as Node)
+    ) {
       onClose();
     }
   }
@@ -153,46 +155,58 @@
   onkeydown={handleKeydown}
 >
   <div class="chip-editor-row">
-    <button
-      class="chip-editor-toggle chip-editor-toggle--require"
-      class:active={isRequired}
+    <Button
+      small
+      premium
+      ghost
+      minW={false}
+      hover={isRequired}
       aria-pressed={isRequired}
       onclick={toggleRequired}
       title="Require"
     >
       Require
-    </button>
-    <button
-      class="chip-editor-toggle chip-editor-toggle--exclude"
-      class:active={isExcluded}
+    </Button>
+    <Button
+      small
+      danger
+      ghost
+      minW={false}
+      hover={isExcluded}
       aria-pressed={isExcluded}
       onclick={toggleExcluded}
       title="Exclude"
     >
       Exclude
-    </button>
+    </Button>
   </div>
 
   {#if showBoost && onBoostChange}
     <div class="chip-editor-row chip-editor-boost">
       <span class="chip-editor-label">Boost</span>
       <div class="chip-editor-stepper">
-        <button
-          class="chip-editor-step-btn"
+        <Button
+          small
+          ghost
+          primary
+          minW={false}
           onclick={decrementBoost}
           aria-label="Decrease boost"
           disabled={boost === null || boost <= 1}
         >
-          <ArrowDown16 />  
-        </button>
+          <ArrowDown16 />
+        </Button>
         <span class="chip-editor-boost-value">{boost ?? "1"}</span>
-        <button
-          class="chip-editor-step-btn"
+        <Button
+          small
+          ghost
+          primary
+          minW={false}
           onclick={incrementBoost}
           aria-label="Increase boost"
         >
           <ArrowUp16 />
-        </button>
+        </Button>
       </div>
     </div>
   {/if}
@@ -231,26 +245,6 @@
     margin-bottom: 4px;
   }
 
-  .chip-editor-toggle {
-    flex: 1;
-    padding: 4px 8px;
-    font-family: var(--font-sans);
-    font-size: var(--font-sm, 14px);
-    font-weight: 400;
-    border: 1px solid var(--gray-2, #d0d7de);
-    border-radius: 4px;
-    background: white;
-    cursor: pointer;
-    text-align: center;
-  }
-
-  .chip-editor-toggle.active {
-    background: var(--blue-1);
-    border-color: var(--blue-2);
-    color: var(--blue-4);
-    font-weight: 500;
-  }
-
   .chip-editor-boost {
     align-items: center;
     justify-content: space-between;
@@ -258,6 +252,7 @@
 
   .chip-editor-label {
     font-size: var(--font-sm, 14px);
+    font-weight: var(--font-semibold, 600);
     color: var(--gray-5, #6e7781);
   }
 
@@ -265,24 +260,6 @@
     display: flex;
     align-items: center;
     gap: 4px;
-  }
-
-  .chip-editor-step-btn {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--gray-2, #d0d7de);
-    border-radius: 4px;
-    background: white;
-    cursor: pointer;
-    font-size: var(--font-sm, 14px);
-    font-weight: 600;
-  }
-
-  .chip-editor-step-btn:hover {
-    background: var(--gray-0, #f6f8fa);
   }
 
   .chip-editor-boost-value {
@@ -297,5 +274,4 @@
     border-top: 1px solid var(--gray-2, #d0d7de);
     margin: 4px 0;
   }
-
 </style>

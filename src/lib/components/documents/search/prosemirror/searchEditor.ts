@@ -38,9 +38,7 @@ function placeholderPlugin(): Plugin {
         const doc = editorView.state.doc;
         const para = doc.firstChild;
         const isEmpty =
-          doc.childCount === 1 &&
-          para !== null &&
-          para.content.size === 0;
+          doc.childCount === 1 && para !== null && para.content.size === 0;
         editorView.dom.classList.toggle("is-empty", isEmpty);
       }
       update();

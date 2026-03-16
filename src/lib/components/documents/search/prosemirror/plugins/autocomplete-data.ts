@@ -10,7 +10,11 @@ import { list as listProjects } from "$lib/api/projects";
 import { search as searchDocuments } from "$lib/api/documents";
 
 /** How a field selection is inserted into the editor. */
-export type InsertBehavior = "field-value-chip" | "sort-chip" | "range-chip" | "text";
+export type InsertBehavior =
+  | "field-value-chip"
+  | "sort-chip"
+  | "range-chip"
+  | "text";
 
 export interface FieldDef {
   name: string;
@@ -262,7 +266,9 @@ const RANGE_CONFIGS: Record<string, RangeFieldConfig> = {
 };
 
 /** Get range configuration for a field, or undefined if it's not a range field. */
-export function getRangeConfig(fieldName: string): RangeFieldConfig | undefined {
+export function getRangeConfig(
+  fieldName: string,
+): RangeFieldConfig | undefined {
   const canonical = resolveFieldName(fieldName);
   return RANGE_CONFIGS[canonical];
 }
@@ -433,9 +439,7 @@ export function detectTrigger(
 
   // Check for quoted value pattern: field:"value text
   // This allows spaces inside the value while maintaining autocomplete.
-  const quotedMatch = text.match(
-    /([+-]?[a-zA-Z_][a-zA-Z0-9_]*):\"([^"]*)$/,
-  );
+  const quotedMatch = text.match(/([+-]?[a-zA-Z_][a-zA-Z0-9_]*):\"([^"]*)$/);
   if (quotedMatch) {
     const rawField = quotedMatch[1]!.replace(/^[+-]/, "");
     const canonical = resolveFieldName(rawField);
@@ -444,10 +448,20 @@ export function detectTrigger(
     const field = FIELDS.find((f) => f.name === canonical);
 
     if (field && field.hasValueSuggestions) {
-      return { stage: "value", fieldName: canonical, valueFilter, triggerStart };
+      return {
+        stage: "value",
+        fieldName: canonical,
+        valueFilter,
+        triggerStart,
+      };
     }
     if (field && preloadedFields?.has(canonical)) {
-      return { stage: "value", fieldName: canonical, valueFilter, triggerStart };
+      return {
+        stage: "value",
+        fieldName: canonical,
+        valueFilter,
+        triggerStart,
+      };
     }
     if (!field && preloadedFields?.has(rawField)) {
       return {

@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  EditorState,
-  NodeSelection,
-  TextSelection,
-} from "prosemirror-state";
+import { EditorState, NodeSelection, TextSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { keymap } from "prosemirror-keymap";
 import { baseKeymap } from "prosemirror-commands";
@@ -65,9 +61,7 @@ function findChipPos(
 
 /** Dispatch a keydown event through ProseMirror's event handling. */
 function pressKey(view: EditorView, key: string) {
-  view.dom.dispatchEvent(
-    new KeyboardEvent("keydown", { key, bubbles: true }),
-  );
+  view.dom.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
 }
 
 describe("atom-navigation-plugin", () => {
@@ -120,9 +114,7 @@ describe("atom-navigation-plugin", () => {
 
       // Cursor at start of paragraph (pos=1), before "a "
       view.dispatch(
-        view.state.tr.setSelection(
-          TextSelection.create(view.state.doc, 1),
-        ),
+        view.state.tr.setSelection(TextSelection.create(view.state.doc, 1)),
       );
 
       pressKey(view, "ArrowLeft");
@@ -223,9 +215,7 @@ describe("atom-navigation-plugin", () => {
       const view = createView(doc);
 
       view.dispatch(
-        view.state.tr.setSelection(
-          TextSelection.create(view.state.doc, 1),
-        ),
+        view.state.tr.setSelection(TextSelection.create(view.state.doc, 1)),
       );
 
       pressKey(view, "ArrowDown");

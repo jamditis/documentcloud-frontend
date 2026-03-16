@@ -563,11 +563,7 @@ describe("autocomplete-data", () => {
           { label: "Finance", value: "Finance" },
         ],
       };
-      const results = await fetchValueSuggestions(
-        "data_Folder",
-        "",
-        preloaded,
-      );
+      const results = await fetchValueSuggestions("data_Folder", "", preloaded);
       expect(results).toHaveLength(2);
     });
 

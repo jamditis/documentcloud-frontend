@@ -11,6 +11,7 @@ Keyboard navigation only works for the shortcut options (ArrowUp/Down, handled b
 **Files:** `RangeBuilder.svelte`, `autocomplete.svelte.ts`
 
 **Recommended approach:**
+
 1. Change RangeBuilder's role from `listbox` to `dialog` (or remove the role and use a composite pattern with labeled sections).
 2. Add a range-stage-specific code path in `handleKeyDown` that does **not** intercept Tab, allowing natural Tab order through: fixed input → Insert button → shortcut options → start input → end input → Insert button.
 3. ArrowUp/Down should only navigate the shortcut options when one of them has focus, not when an input has focus.
@@ -25,6 +26,7 @@ Keyboard navigation only works for the shortcut options (ArrowUp/Down, handled b
 **Why this is hard:** Adding `tabindex="-1"` and calling `this.dom.focus()` in `selectNode()` would break ProseMirror's focus model — the editor `<div>` must retain DOM focus for typing to work. ProseMirror expects to own focus at all times; moving it to a child node would cause the editor to fire blur events.
 
 **Recommended approach:** Use the `aria-activedescendant` pattern (same pattern already used for autocomplete suggestions):
+
 1. Give each chip wrapper an `id` (e.g., `search-chip-{pos}`).
 2. Add `tabindex="-1"` to the wrapper so it's a valid `aria-activedescendant` target.
 3. When `selectNode()` fires, set `aria-activedescendant` on the editor DOM to point at the chip's `id`. The chip's `aria-label` (already added in subissue-3) will then be announced.
@@ -45,22 +47,23 @@ Keyboard navigation only works for the shortcut options (ArrowUp/Down, handled b
 
 **Audit results and fixes applied:**
 
-| Element | Before | After | Ratio |
-|---------|--------|-------|-------|
-| AND/OR/NOT operators (gray-5 on purple-1) | — | No change needed | 10.84:1 PASS |
-| Parentheses (gray-5 on gray-1) | — | No change needed | 11.15:1 PASS |
-| Required `+` prefix (decoration) | `--green-3` (2.17:1) | `--green-4` | 5.52:1 PASS |
-| Excluded `-` prefix (decoration) | `--orange-3` (2.76:1) | `--orange-4` | 7.16:1 PASS |
-| Blue chip text (blue-5 on blue-1) | — | No change needed | 10.40:1 PASS |
-| Blue chip label (0.7 opacity) | — | No change needed | 4.64:1 PASS |
-| Green chip text (green-5 on green-1) | — | No change needed | 9.90:1 PASS |
-| Green chip label (0.7→0.75 opacity) | 4.37:1 | opacity 0.75 | 4.98:1 PASS |
-| Chip `+` prefix (green-3 on green-1) | 2.00:1 | `color: inherit` (green-5) | 9.90:1 PASS |
-| Red chip text (red-5 on red-1) | — | No change needed | 12.49:1 PASS |
-| Chip `-` prefix (orange-3 on red-1) | 2.34:1 | `color: inherit` (red-5) | 12.49:1 PASS |
-| Purple chip text (purple-5 on purple-1) | — | No change needed | 12.02:1 PASS |
-| Purple chip label (0.7 opacity) | — | No change needed | 5.00:1 PASS |
+| Element                                   | Before                | After                      | Ratio        |
+| ----------------------------------------- | --------------------- | -------------------------- | ------------ |
+| AND/OR/NOT operators (gray-5 on purple-1) | —                     | No change needed           | 10.84:1 PASS |
+| Parentheses (gray-5 on gray-1)            | —                     | No change needed           | 11.15:1 PASS |
+| Required `+` prefix (decoration)          | `--green-3` (2.17:1)  | `--green-4`                | 5.52:1 PASS  |
+| Excluded `-` prefix (decoration)          | `--orange-3` (2.76:1) | `--orange-4`               | 7.16:1 PASS  |
+| Blue chip text (blue-5 on blue-1)         | —                     | No change needed           | 10.40:1 PASS |
+| Blue chip label (0.7 opacity)             | —                     | No change needed           | 4.64:1 PASS  |
+| Green chip text (green-5 on green-1)      | —                     | No change needed           | 9.90:1 PASS  |
+| Green chip label (0.7→0.75 opacity)       | 4.37:1                | opacity 0.75               | 4.98:1 PASS  |
+| Chip `+` prefix (green-3 on green-1)      | 2.00:1                | `color: inherit` (green-5) | 9.90:1 PASS  |
+| Red chip text (red-5 on red-1)            | —                     | No change needed           | 12.49:1 PASS |
+| Chip `-` prefix (orange-3 on red-1)       | 2.34:1                | `color: inherit` (red-5)   | 12.49:1 PASS |
+| Purple chip text (purple-5 on purple-1)   | —                     | No change needed           | 12.02:1 PASS |
+| Purple chip label (0.7 opacity)           | —                     | No change needed           | 5.00:1 PASS  |
 
 **Changes made:**
+
 - `SearchEditor.svelte`: Decoration prefix colors changed from `-3` to `-4` variants
 - `FieldValueChip.svelte`, `RangeChip.svelte`: Chip prefix colors changed to `inherit` (uses chip's own text color); chip-field label opacity bumped from 0.7 to 0.75

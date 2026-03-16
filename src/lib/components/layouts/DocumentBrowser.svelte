@@ -139,8 +139,7 @@
           if (!Array.isArray(values)) continue;
           // "_tag" key maps to the "tag" search field;
           // other keys need the "data_" prefix for Lucene syntax
-          const fieldName =
-            rawKey === "_tag" ? "tag" : `data_${rawKey}`;
+          const fieldName = rawKey === "_tag" ? "tag" : `data_${rawKey}`;
           if (!dataFields.has(fieldName)) {
             dataFields.set(fieldName, new Map());
           }

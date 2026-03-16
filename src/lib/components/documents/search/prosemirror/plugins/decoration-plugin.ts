@@ -136,9 +136,7 @@ function buildDecorations(doc: ProseMirrorNode): DecorationSet {
     while ((match = PAREN_RE.exec(text)) !== null) {
       const from = pos + match.index;
       const to = from + 1;
-      decorations.push(
-        Decoration.inline(from, to, { class: "search-paren" }),
-      );
+      decorations.push(Decoration.inline(from, to, { class: "search-paren" }));
     }
 
     // Prefix operators (+ and -)
@@ -147,9 +145,7 @@ function buildDecorations(doc: ProseMirrorNode): DecorationSet {
       const from = pos + match.index;
       const to = from + 1;
       const cls =
-        match[0] === "+"
-          ? "search-prefix-required"
-          : "search-prefix-excluded";
+        match[0] === "+" ? "search-prefix-required" : "search-prefix-excluded";
       decorations.push(Decoration.inline(from, to, { class: cls }));
     }
 
@@ -158,10 +154,9 @@ function buildDecorations(doc: ProseMirrorNode): DecorationSet {
     while ((match = PREFIX_TERM_RE.exec(text)) !== null) {
       const from = pos + match.index;
       const to = from + match[0].length;
-      const cls =
-        match[0].startsWith("+")
-          ? "search-term-required"
-          : "search-term-excluded";
+      const cls = match[0].startsWith("+")
+        ? "search-term-required"
+        : "search-term-excluded";
       decorations.push(Decoration.inline(from, to, { class: cls }));
     }
   });

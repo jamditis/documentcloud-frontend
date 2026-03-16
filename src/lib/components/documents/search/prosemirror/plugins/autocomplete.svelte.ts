@@ -93,7 +93,10 @@ function computeAutocompleteState(
       : from;
 
   if (trigger.stage === "field" && trigger.fieldFilter) {
-    const suggestions = getFieldSuggestions(trigger.fieldFilter, preloadedFields);
+    const suggestions = getFieldSuggestions(
+      trigger.fieldFilter,
+      preloadedFields,
+    );
     if (suggestions.length === 0) return null;
     return {
       active: true,
@@ -215,7 +218,7 @@ function applyFieldSuggestion(
 
   // Determine if we should transition to value stage
   const hasStaticValues = fieldDef?.hasValueSuggestions ?? false;
-  const hasPreloadedValues = !!(preloaded?.[suggestion.value]?.length);
+  const hasPreloadedValues = !!preloaded?.[suggestion.value]?.length;
   const willShowValues =
     hasStaticValues || hasPreloadedValues || isAsyncField(suggestion.value);
 
@@ -223,7 +226,8 @@ function applyFieldSuggestion(
   // insert quotes around the cursor so multi-word values work naturally.
   // Static-value fields (enums like access, status) don't need quotes
   // since the user picks from a fixed list of single-word values.
-  const hasStaticOnly = fieldDef?.hasValueSuggestions && !isAsyncField(suggestion.value);
+  const hasStaticOnly =
+    fieldDef?.hasValueSuggestions && !isAsyncField(suggestion.value);
   const useQuotes = willShowValues && !hasStaticOnly;
 
   const fieldText = useQuotes
@@ -275,10 +279,7 @@ function applyFieldSuggestion(
   view.dispatch(tr);
 }
 
-function applyValueSuggestion(
-  view: EditorView,
-  suggestion: Suggestion,
-): void {
+function applyValueSuggestion(view: EditorView, suggestion: Suggestion): void {
   const state = autocompletePluginKey.getState(view.state) as AutocompleteState;
   if (
     !state.active ||
@@ -342,17 +343,13 @@ function applyValueSuggestion(
     const afterChip = state.from + chipNode.nodeSize;
     tr.insertText("\u00A0", afterChip);
     tr.setSelection(TextSelection.create(tr.doc, afterChip + 1));
-
   }
 
   tr.setMeta(autocompletePluginKey, INACTIVE);
   view.dispatch(tr);
 }
 
-function applyRangeShortcut(
-  view: EditorView,
-  suggestion: Suggestion,
-): void {
+function applyRangeShortcut(view: EditorView, suggestion: Suggestion): void {
   const state = autocompletePluginKey.getState(view.state) as AutocompleteState;
   if (
     !state.active ||
@@ -400,18 +397,13 @@ function applyRangeShortcut(
 const DATE_FIELDS = new Set(["created_at", "updated_at"]);
 
 /** Format a date value for Solr. Bare YYYY-MM-DD dates need time suffixes. */
-function formatDateBound(
-  value: string,
-  position: "lower" | "upper",
-): string {
+function formatDateBound(value: string, position: "lower" | "upper"): string {
   if (value === "*" || !value) return value;
   // Already has time component or is date math (NOW-...)
   if (/T|NOW/.test(value)) return value;
   // Bare date: append time
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return position === "lower"
-      ? `${value}T00:00:00Z`
-      : `${value}T23:59:59Z`;
+    return position === "lower" ? `${value}T00:00:00Z` : `${value}T23:59:59Z`;
   }
   return value;
 }
@@ -588,16 +580,20 @@ export function autocompletePlugin(
 
     props: {
       handleKeyDown(view, event) {
-        const state = this.getState(
-          view.state,
-        ) as AutocompleteState;
+        const state = this.getState(view.state) as AutocompleteState;
 
         // Mod+/ opens the full field list when autocomplete is not active
-        if (event.key === "/" && (event.metaKey || event.ctrlKey) && !state?.active) {
+        if (
+          event.key === "/" &&
+          (event.metaKey || event.ctrlKey) &&
+          !state?.active
+        ) {
           event.preventDefault();
           const { from } = view.state.selection;
           const preloaded = options.getPreloadedSuggestions?.();
-          const extraFields = preloaded ? new Set(Object.keys(preloaded)) : undefined;
+          const extraFields = preloaded
+            ? new Set(Object.keys(preloaded))
+            : undefined;
           const suggestions = getAllFieldSuggestions(extraFields);
           view.dispatch(
             view.state.tr.setMeta(autocompletePluginKey, {
@@ -621,8 +617,7 @@ export function autocompletePlugin(
         switch (event.key) {
           case "ArrowDown": {
             event.preventDefault();
-            const next =
-              (state.selectedIndex + 1) % state.suggestions.length;
+            const next = (state.selectedIndex + 1) % state.suggestions.length;
             view.dispatch(
               view.state.tr.setMeta(autocompletePluginKey, {
                 ...state,
@@ -755,8 +750,10 @@ export function autocompletePlugin(
       let abortController: AbortController | null = null;
       let lastFetchKey = "";
       /** Cache of last successfully fetched async suggestions, keyed by field. */
-      let lastAsyncResults: { field: string; suggestions: Suggestion[] } | null =
-        null;
+      let lastAsyncResults: {
+        field: string;
+        suggestions: Suggestion[];
+      } | null = null;
 
       function onSelect(index: number) {
         const state = autocompletePluginKey.getState(
@@ -891,7 +888,11 @@ export function autocompletePlugin(
 
       let prevStage: string | null = null;
 
-      function announceCount(count: number, stage: string, fieldName: string | null) {
+      function announceCount(
+        count: number,
+        stage: string,
+        fieldName: string | null,
+      ) {
         if (count === 0) {
           liveRegion.textContent = "";
         } else {
@@ -906,10 +907,7 @@ export function autocompletePlugin(
       }
 
       /** Show the standard dropdown, hide range builder */
-      function showDropdown(
-        pluginState: AutocompleteState,
-        view: EditorView,
-      ) {
+      function showDropdown(pluginState: AutocompleteState, view: EditorView) {
         // Hide range builder
         if (rangeComponent) {
           rangeComponent.getElement()?.style.setProperty("display", "none");
@@ -974,7 +972,7 @@ export function autocompletePlugin(
           rangeProps.selectedIndex = pluginState.selectedIndex;
         }
 
-        const el = rangeComponent.getElement();
+        const el = rangeComponent?.getElement();
         if (el) {
           el.style.display = "block";
           if (pluginState.from != null) {
@@ -1075,7 +1073,11 @@ export function autocompletePlugin(
               prevStage = pluginState.stage;
             }
             if (pluginState.suggestions.length !== prevSuggestionCount) {
-              announceCount(pluginState.suggestions.length, pluginState.stage, pluginState.fieldName);
+              announceCount(
+                pluginState.suggestions.length,
+                pluginState.stage,
+                pluginState.fieldName,
+              );
               prevSuggestionCount = pluginState.suggestions.length;
             }
             return;
@@ -1089,7 +1091,10 @@ export function autocompletePlugin(
             !pluginState.fieldName ||
             !isAsyncField(pluginState.fieldName)
           ) {
-            const computed = computeAutocompleteState(view, preloadedFieldNames);
+            const computed = computeAutocompleteState(
+              view,
+              preloadedFieldNames,
+            );
             if (computed) {
               if (
                 computed.filterText !== pluginState.filterText ||
@@ -1170,7 +1175,11 @@ export function autocompletePlugin(
 
           // Announce changes
           if (pluginState.suggestions.length !== prevSuggestionCount) {
-            announceCount(pluginState.suggestions.length, pluginState.stage, pluginState.fieldName);
+            announceCount(
+              pluginState.suggestions.length,
+              pluginState.stage,
+              pluginState.fieldName,
+            );
             prevSuggestionCount = pluginState.suggestions.length;
           }
         },

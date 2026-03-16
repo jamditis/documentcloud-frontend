@@ -51,7 +51,7 @@ export function serialize(docOrFragment: ProseMirrorNode | Fragment): string {
         } else {
           result += value;
         }
-        if (boost) result += `^${boost}`;
+        if (boost && boost > 1) result += `^${boost}`;
         lastWasAtom = true;
         break;
       }

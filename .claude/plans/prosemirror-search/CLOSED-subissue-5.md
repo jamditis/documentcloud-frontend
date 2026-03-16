@@ -36,10 +36,10 @@ Option 2 is likely the cleanest fix since it avoids the leafText ambiguity entir
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `plugins/autocomplete.ts` | Fix `textBeforeCursor` extraction in `computeAutocompleteState()` to correctly handle text after chips. |
-| `tests/SearchEditor.test.ts` | Add test: insert a chip programmatically, type one space then a field prefix → autocomplete activates. |
+| File                         | Change                                                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `plugins/autocomplete.ts`    | Fix `textBeforeCursor` extraction in `computeAutocompleteState()` to correctly handle text after chips. |
+| `tests/SearchEditor.test.ts` | Add test: insert a chip programmatically, type one space then a field prefix → autocomplete activates.  |
 
 ## Reproduction
 

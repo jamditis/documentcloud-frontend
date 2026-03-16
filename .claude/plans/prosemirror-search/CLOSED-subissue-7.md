@@ -26,6 +26,7 @@ Styles live in a separate `autocomplete.css` file imported into `SearchEditor.sv
 The main dropdown container. Receives suggestions and renders them as a listbox.
 
 Props:
+
 - `suggestions: Suggestion[]` — current suggestion list
 - `selectedIndex: number` — highlighted item index
 - `loading: boolean` — whether async results are pending
@@ -34,6 +35,7 @@ Props:
 - `onHover: (index: number) => void`
 
 Handles:
+
 - Rendering option items with label + description
 - Selected state highlighting
 - Loading indicator
@@ -46,6 +48,7 @@ Handles:
 The range-specific dropdown with shortcuts, custom range inputs, and fixed value input.
 
 Props:
+
 - `fieldName: string`
 - `suggestions: Suggestion[]` — range shortcuts
 - `selectedIndex: number`
@@ -56,6 +59,7 @@ Props:
 - `anchor: { top: number; bottom: number; left: number }`
 
 Handles:
+
 - Fixed value section (label input, insert button)
 - Range shortcut list
 - Custom range inputs (start/end with labels from `rangeConfig`)
@@ -87,19 +91,19 @@ Currently uses a virtual element from `view.coordsAtPos()`. The Svelte component
 
 ## Files to Create
 
-| File | Description |
-|------|-------------|
-| `AutocompleteDropdown.svelte` | Suggestion listbox component |
-| `RangeBuilder.svelte` | Range/fixed value form component |
+| File                          | Description                      |
+| ----------------------------- | -------------------------------- |
+| `AutocompleteDropdown.svelte` | Suggestion listbox component     |
+| `RangeBuilder.svelte`         | Range/fixed value form component |
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `plugins/autocomplete.ts` | Replace `createDropdown`, `renderDropdown`, `renderRangeDropdown`, `updateRangeSelection`, `positionDropdown`, `createLiveRegion`, `announceCount` with Svelte component mount/update/destroy. Keep state machine, key handling, suggestion logic, and async fetch. |
-| `plugins/autocomplete.css` | Move styles into Svelte component `<style>` blocks. Delete file when done. |
-| `SearchEditor.svelte` | Remove `import "./plugins/autocomplete.css"` |
-| `tests/SearchEditor.test.ts` | Tests should pass unchanged — the dropdown's DOM structure and ARIA attributes stay the same. |
+| File                         | Change                                                                                                                                                                                                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `plugins/autocomplete.ts`    | Replace `createDropdown`, `renderDropdown`, `renderRangeDropdown`, `updateRangeSelection`, `positionDropdown`, `createLiveRegion`, `announceCount` with Svelte component mount/update/destroy. Keep state machine, key handling, suggestion logic, and async fetch. |
+| `plugins/autocomplete.css`   | Move styles into Svelte component `<style>` blocks. Delete file when done.                                                                                                                                                                                          |
+| `SearchEditor.svelte`        | Remove `import "./plugins/autocomplete.css"`                                                                                                                                                                                                                        |
+| `tests/SearchEditor.test.ts` | Tests should pass unchanged — the dropdown's DOM structure and ARIA attributes stay the same.                                                                                                                                                                       |
 
 ## Migration Strategy
 
