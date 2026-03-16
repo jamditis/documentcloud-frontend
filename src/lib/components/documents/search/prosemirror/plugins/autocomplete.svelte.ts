@@ -740,6 +740,14 @@ export function autocompletePlugin(
       editorDom.setAttribute("aria-expanded", "false");
       editorDom.setAttribute("aria-controls", dropdownId);
 
+      /** Only clear aria-activedescendant if autocomplete set it (not chip selection). */
+      function clearActiveDescendant() {
+        const current = editorDom.getAttribute("aria-activedescendant");
+        if (current && current.startsWith(dropdownId)) {
+          editorDom.removeAttribute("aria-activedescendant");
+        }
+      }
+
       let prevSuggestionCount = 0;
 
       // Async fetch state
@@ -1032,7 +1040,7 @@ export function autocompletePlugin(
                     // No matches from interim data and no async fetch coming
                     hideAll();
                     editorDom.setAttribute("aria-expanded", "false");
-                    editorDom.removeAttribute("aria-activedescendant");
+                    clearActiveDescendant();
                     return;
                   }
                 }
@@ -1047,7 +1055,7 @@ export function autocompletePlugin(
             // Truly inactive
             hideAll();
             editorDom.setAttribute("aria-expanded", "false");
-            editorDom.removeAttribute("aria-activedescendant");
+            clearActiveDescendant();
             if (prevSuggestionCount !== 0) {
               announceCount(0, "field", null);
               prevSuggestionCount = 0;

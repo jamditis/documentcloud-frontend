@@ -84,7 +84,7 @@
   }
 
   .chip-field {
-    opacity: 0.7;
+    opacity: 0.75;
     margin: 0 0.125rem 0 0;
     text-transform: uppercase;
     letter-spacing: 0.025em;
@@ -98,11 +98,11 @@
   }
 
   .chip-prefix-required {
-    color: var(--green-3);
+    color: inherit;
   }
 
   .chip-prefix-excluded {
-    color: var(--orange-3);
+    color: inherit;
   }
 
   .chip-bounds {

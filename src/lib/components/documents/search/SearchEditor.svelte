@@ -222,12 +222,12 @@
   }
 
   :global(.search-prefix-required) {
-    color: var(--green-3);
+    color: var(--green-4);
     font-weight: 600;
   }
 
   :global(.search-prefix-excluded) {
-    color: var(--orange-3);
+    color: var(--orange-4);
     font-weight: 600;
   }
 

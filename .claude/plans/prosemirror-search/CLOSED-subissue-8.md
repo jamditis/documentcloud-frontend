@@ -2,7 +2,7 @@
 
 Remaining accessibility issues from the audit in subissue-3 that require deeper architectural work.
 
-## 2.3 — RangeBuilder keyboard navigation is incomplete (Major)
+## SOLVED ~~2.3 — RangeBuilder keyboard navigation is incomplete (Major)~~
 
 **Problem:** RangeBuilder has three interaction zones — a "Fixed value" input+button, a list of shortcut `role="option"` items, and a "Custom range" pair of inputs+button — all wrapped in a single `role="listbox"` container. This is semantically incorrect: `listbox` children must be `option` elements, not form controls.
 
@@ -16,7 +16,7 @@ Keyboard navigation only works for the shortcut options (ArrowUp/Down, handled b
 3. ArrowUp/Down should only navigate the shortcut options when one of them has focus, not when an input has focus.
 4. Escape should still dismiss the entire range builder.
 
-## 3.2 — Chips are not independently keyboard-focusable (Major)
+## SOLVED ~~3.2 — Chips are not independently keyboard-focusable (Major)~~
 
 **Problem:** The chip wrapper `<span>` created in `nodeviews.svelte.ts:46-51` has `contentEditable="false"` but no `tabindex` and no ARIA role. ProseMirror's NodeSelection visually highlights the chip and triggers `selectNode()`, but this is internal to ProseMirror — it doesn't move DOM focus to the chip element. Screen readers in browse/virtual-cursor mode skip the chip entirely.
 
@@ -33,40 +33,34 @@ Keyboard navigation only works for the shortcut options (ArrowUp/Down, handled b
 
 **Note:** This approach solves 3.3 as well — `aria-activedescendant` pointing at a labeled element triggers an automatic screen reader announcement.
 
-## 3.3 — Chip selection state is not announced (Major)
+## SOLVED ~~3.3 — Chip selection state is not announced (Major)~~
 
-**Problem:** When a user arrows into a chip, `selectNode()` (`nodeviews.svelte.ts:69-77`) adds a CSS class and opens ChipEditor, but nothing announces to screen readers that a chip was selected, what it contains, or what actions are available.
+**Problem:** When a user arrows into a chip, `selectNode()` adds a CSS class and opens ChipEditor, but nothing announces to screen readers that a chip was selected, what it contains, or what actions are available.
 
-**Files:** `nodeviews.svelte.ts`
+**Solution:** The `aria-activedescendant` pattern from 3.2 provides the announcement mechanism. Added `computeChipLabel()` to `nodeviews.svelte.ts` which generates an accessible label from node type and attributes (e.g., `"required, user: Mitchell Kotler"`, `"created_at: from NOW-1MONTH to *"`, `"Sort by page_count, descending"`). The label is set on the NodeView wrapper DOM element in the constructor and updated in `update()` when attributes change. Since `aria-activedescendant` points to the wrapper, screen readers now announce the chip's content when it receives a NodeSelection.
 
-**Recommended approach (standalone, if 3.2 is not done):**
-1. Create a shared `aria-live="polite"` region (could reuse the one already created by the autocomplete plugin, or create a new one at the SearchEditor level).
-2. In `selectNode()`, push an announcement: e.g., "Selected: user: Mitchell Kotler. Press Backspace to delete or ArrowDown to edit."
-3. In `deselectNode()`, clear the announcement.
+## SOLVED ~~5.2 — Decoration contrast needs verification (Minor)~~
 
-**Recommended approach (with 3.2):** If `aria-activedescendant` is implemented per 3.2, this issue is solved automatically — the screen reader announces the pointed-to element's `aria-label` when `aria-activedescendant` changes.
+**Problem:** Several color pairings failed WCAG 2.1 AA contrast (4.5:1 for normal text).
 
-## 5.2 — Decoration contrast needs verification (Minor)
+**Audit results and fixes applied:**
 
-**Problem:** CSS custom properties used for decoration colors need to be checked against WCAG 2.1 AA contrast requirements (4.5:1 for normal text, 3:1 for large text). The actual hex values depend on the theme.
+| Element | Before | After | Ratio |
+|---------|--------|-------|-------|
+| AND/OR/NOT operators (gray-5 on purple-1) | — | No change needed | 10.84:1 PASS |
+| Parentheses (gray-5 on gray-1) | — | No change needed | 11.15:1 PASS |
+| Required `+` prefix (decoration) | `--green-3` (2.17:1) | `--green-4` | 5.52:1 PASS |
+| Excluded `-` prefix (decoration) | `--orange-3` (2.76:1) | `--orange-4` | 7.16:1 PASS |
+| Blue chip text (blue-5 on blue-1) | — | No change needed | 10.40:1 PASS |
+| Blue chip label (0.7 opacity) | — | No change needed | 4.64:1 PASS |
+| Green chip text (green-5 on green-1) | — | No change needed | 9.90:1 PASS |
+| Green chip label (0.7→0.75 opacity) | 4.37:1 | opacity 0.75 | 4.98:1 PASS |
+| Chip `+` prefix (green-3 on green-1) | 2.00:1 | `color: inherit` (green-5) | 9.90:1 PASS |
+| Red chip text (red-5 on red-1) | — | No change needed | 12.49:1 PASS |
+| Chip `-` prefix (orange-3 on red-1) | 2.34:1 | `color: inherit` (red-5) | 12.49:1 PASS |
+| Purple chip text (purple-5 on purple-1) | — | No change needed | 12.02:1 PASS |
+| Purple chip label (0.7 opacity) | — | No change needed | 5.00:1 PASS |
 
-**Color pairings to verify:**
-
-| Element | Background | Text color | Notes |
-|---------|-----------|------------|-------|
-| AND/OR/NOT operators | `--purple-1` | inherited (likely `--gray-5`) | Background decoration on inline text |
-| Parentheses | `--gray-1` | inherited | Background decoration on inline text |
-| Required prefix `+` | — | `--green-3` | Text color against white editor background |
-| Excluded prefix `-` | — | `--orange-3` | Text color against white editor background |
-| FieldValue chip | `--blue-1` bg, `--blue-2` border | `--blue-5` text | Chip background + text |
-| Range chip | `--blue-1` bg, `--blue-2` border | `--blue-5` text | Same as FieldValue |
-| Sort chip | `--purple-1` bg, `--purple-2` border | `--purple-5` text | Purple variant |
-| Chip field label | chip bg | chip text at 0.7 opacity | Reduced opacity lowers effective contrast |
-
-**Files:** `SearchEditor.svelte` (decoration styles), `FieldValueChip.svelte`, `RangeChip.svelte`, `SortChip.svelte`, and the theme/variable definitions.
-
-**Recommended approach:**
-1. Resolve each CSS variable to its hex value in the default (light) theme.
-2. Calculate contrast ratios using WCAG formula or a tool like [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/).
-3. For elements with reduced opacity (`.chip-field` at `opacity: 0.7`), calculate the effective color by alpha-blending against the background.
-4. Document results and fix any pairings that fall below 4.5:1 (or 3:1 for large/bold text).
+**Changes made:**
+- `SearchEditor.svelte`: Decoration prefix colors changed from `-3` to `-4` variants
+- `FieldValueChip.svelte`, `RangeChip.svelte`: Chip prefix colors changed to `inherit` (uses chip's own text color); chip-field label opacity bumped from 0.7 to 0.75
