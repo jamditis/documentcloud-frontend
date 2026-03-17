@@ -394,7 +394,7 @@ describe("NodeViews in SearchEditor", () => {
       });
       const wrapper = editor.querySelector(".search-nodeview") as HTMLElement;
       expect(wrapper.getAttribute("aria-label")).toBe(
-        "created_at: from NOW-1MONTH to *",
+        "created_at: from NOW-1MONTH to any",
       );
     });
 

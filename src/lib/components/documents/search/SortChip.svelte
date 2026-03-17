@@ -1,5 +1,7 @@
 <!-- SortChip renders a "sort" atom node. -->
 <script lang="ts">
+  import { sortLabel } from "./utils/label";
+
   interface Props {
     field?: string;
     direction?: "asc" | "desc";
@@ -8,9 +10,7 @@
   let { field = "", direction = "asc" }: Props = $props();
 
   let arrow = $derived(direction === "desc" ? "\u2193" : "\u2191");
-  let chipLabel = $derived(
-    `Sort by ${field}, ${direction === "desc" ? "descending" : "ascending"}`,
-  );
+  let chipLabel = $derived(sortLabel({ field, direction }));
 </script>
 
 <span class="search-chip search-sort" aria-label={chipLabel}>

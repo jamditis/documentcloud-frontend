@@ -17,48 +17,9 @@ import FieldValueChip from "../FieldValueChip.svelte";
 import RangeChip from "../RangeChip.svelte";
 import SortChip from "../SortChip.svelte";
 import ChipEditor from "../ChipEditor.svelte";
+import { chipLabel } from "../utils/label";
 
 type ChipBehavior = "edit" | "toggle-sort";
-
-/**
- * Compute an accessible label for a chip's NodeView wrapper.
- * This label is announced by screen readers when `aria-activedescendant`
- * points to the wrapper (issue 3.3).
- */
-function computeChipLabel(node: ProseMirrorNode): string {
-  const attrs = node.attrs;
-  switch (node.type.name) {
-    case "field-value": {
-      const prefixText =
-        attrs.prefix === "+"
-          ? "required, "
-          : attrs.prefix === "-"
-            ? "excluded, "
-            : "";
-      const label = attrs.displayValue ?? attrs.value ?? "";
-      const boostText =
-        attrs.boost && attrs.boost > 1 ? `, boost ${attrs.boost}` : "";
-      return `${prefixText}${attrs.field}: ${label}${boostText}`;
-    }
-    case "range": {
-      const prefixText =
-        attrs.prefix === "+"
-          ? "required, "
-          : attrs.prefix === "-"
-            ? "excluded, "
-            : "";
-      const lowerDesc = attrs.inclusiveLower !== false ? "from" : "after";
-      const upperDesc = attrs.inclusiveUpper !== false ? "to" : "before";
-      return `${prefixText}${attrs.field}: ${lowerDesc} ${attrs.lower} ${upperDesc} ${attrs.upper}`;
-    }
-    case "sort": {
-      const dir = attrs.direction === "desc" ? "descending" : "ascending";
-      return `Sort by ${attrs.field}, ${dir}`;
-    }
-    default:
-      return "";
-  }
-}
 
 /** Generic Svelte NodeView mounts a component with node attrs as props */
 class SvelteNodeView implements NodeView {
@@ -94,7 +55,7 @@ class SvelteNodeView implements NodeView {
     this.dom.id = `search-chip-${SvelteNodeView.nextId++}`;
     this.dom.setAttribute("tabindex", "-1");
     this.dom.setAttribute("role", "option");
-    this.dom.setAttribute("aria-label", computeChipLabel(node));
+    this.dom.setAttribute("aria-label", chipLabel(node.type.name, node.attrs));
 
     this.componentProps = $state({ ...node.attrs });
     this.component = mount(ComponentClass, {
@@ -243,7 +204,7 @@ class SvelteNodeView implements NodeView {
   /** Update the component when the node's attributes change */
   update(node: ProseMirrorNode): boolean {
     Object.assign(this.componentProps, node.attrs);
-    this.dom.setAttribute("aria-label", computeChipLabel(node));
+    this.dom.setAttribute("aria-label", chipLabel(node.type.name, node.attrs));
     return true;
   }
 

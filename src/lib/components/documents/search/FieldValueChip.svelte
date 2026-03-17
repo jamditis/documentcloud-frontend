@@ -4,6 +4,8 @@
   and a loading indicator for entity fields awaiting API enrichment.
 -->
 <script lang="ts">
+  import { displayBound, fieldValueLabel } from "./utils/label";
+
   /** Entity fields that may need async enrichment */
   const RICH_FIELDS = new Set(["user", "organization", "project", "document"]);
 
@@ -26,27 +28,13 @@
     locked = false,
   }: Props = $props();
 
-  /** Format a value for display. ISO dates become locale strings. */
-  function displayBound(v: string): string {
-    if (/^\d{4}-\d{2}-\d{2}/.test(v)) {
-      const date = new Date(v);
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleDateString();
-      }
-    }
-    return v;
-  }
-
   let isRich = $derived(RICH_FIELDS.has(field));
   let showLoading = $derived(isRich && !displayValue);
   let label = $derived(displayValue ?? displayBound(value));
 
-  let chipLabel = $derived(() => {
-    const prefixText =
-      prefix === "+" ? "required, " : prefix === "-" ? "excluded, " : "";
-    const boostText = boost && boost > 1 ? `, boost ${boost}` : "";
-    return `${prefixText}${field}: ${label}${boostText}`;
-  });
+  let chipLabel = $derived(
+    fieldValueLabel({ field, value, displayValue, prefix, boost }),
+  );
 </script>
 
 <span
@@ -54,7 +42,7 @@
   class:locked
   class:chip-required={prefix === "+"}
   class:chip-excluded={prefix === "-"}
-  aria-label={chipLabel()}
+  aria-label={chipLabel}
 >
   {#if prefix}
     <span

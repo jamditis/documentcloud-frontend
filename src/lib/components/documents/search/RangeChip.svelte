@@ -3,6 +3,8 @@
   Shows field name, bounds, and bracket style (inclusive/exclusive).
 -->
 <script lang="ts">
+  import { displayBound, rangeLabel } from "./utils/label";
+
   interface Props {
     field?: string;
     lower?: string;
@@ -24,39 +26,19 @@
   let lb = $derived(inclusiveLower ? "[" : "{");
   let rb = $derived(inclusiveUpper ? "]" : "}");
 
-  /** Format a bound value for display. ISO dates become locale strings.
-   *
-   *  Only attempt date parsing for values that look like actual dates
-   *  (contain a hyphen, e.g. "2024-01-15" or "2024-01-15T00:00:00Z").
-   *  Bare numbers like "1" or "50" should not be treated as dates.
-   */
-  function displayBound(value: string): string {
-    if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
-      const date = new Date(value);
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleDateString();
-      }
-    }
-    return value;
-  }
-
   let displayLower = $derived(displayBound(lower));
   let displayUpper = $derived(displayBound(upper));
 
-  let chipLabel = $derived(() => {
-    const prefixText =
-      prefix === "+" ? "required, " : prefix === "-" ? "excluded, " : "";
-    const lowerDesc = inclusiveLower ? "from" : "after";
-    const upperDesc = inclusiveUpper ? "to" : "before";
-    return `${prefixText}${field}: ${lowerDesc} ${displayLower} ${upperDesc} ${displayUpper}`;
-  });
+  let chipLabel = $derived(
+    rangeLabel({ field, lower, upper, inclusiveLower, inclusiveUpper, prefix }),
+  );
 </script>
 
 <span
   class="search-chip search-range"
   class:chip-required={prefix === "+"}
   class:chip-excluded={prefix === "-"}
-  aria-label={chipLabel()}
+  aria-label={chipLabel}
 >
   {#if prefix}
     <span
