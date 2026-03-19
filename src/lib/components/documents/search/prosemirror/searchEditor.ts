@@ -221,6 +221,10 @@ export function createSearchEditor(
         const structural =
           getFingerprint(oldDoc) !== getFingerprint(view.state.doc);
         opts.onDocChange(q, structural);
+        // Enrich any newly added atoms (e.g. from paste) that need display names
+        if (structural) {
+          enrichAtoms(view);
+        }
       }
     },
   });
