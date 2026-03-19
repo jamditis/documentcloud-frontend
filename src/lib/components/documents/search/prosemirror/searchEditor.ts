@@ -27,6 +27,7 @@ import {
 import { deserialize } from "../utils/deserialize";
 import { serialize } from "../utils/serialize";
 import { validateQuery } from "../utils/parse";
+import { decorationPluginKey } from "./plugins/decoration-plugin";
 
 // --- Pure helpers ---
 
@@ -170,7 +171,7 @@ export interface SearchEditorOptions {
   initialQuery: string;
   getPreloadedSuggestions: () => Record<string, Suggestion[]>;
   /** Called when the document changes. `structural` is true when atoms were added/removed. */
-  onDocChange: (query: string, structural: boolean, valid: boolean) => void;
+  onDocChange: (query: string, structural: boolean) => void;
 }
 
 /** Create and mount a ProseMirror search editor into the given DOM element. */
@@ -217,10 +218,9 @@ export function createSearchEditor(
       view.updateState(view.state.apply(tr));
       if (tr.docChanged) {
         const q = serialize(view.state.doc);
-        const valid = validateQuery(q).isValid;
         const structural =
           getFingerprint(oldDoc) !== getFingerprint(view.state.doc);
-        opts.onDocChange(q, structural, valid);
+        opts.onDocChange(q, structural);
       }
     },
   });
@@ -261,4 +261,24 @@ export function updateEditorQuery(view: EditorView, query: string): void {
 /** Get the current serialized query from the editor. */
 export function getEditorQuery(view: EditorView): string {
   return serialize(view.state.doc);
+}
+
+/**
+ * Validate the current query. If invalid, enter error mode in the
+ * decoration plugin (shows wavy underlines until the query is fixed).
+ * Returns true if the query is valid.
+ */
+export function validateEditorQuery(view: EditorView): boolean {
+  const q = serialize(view.state.doc);
+  const { isValid } = validateQuery(q);
+  if (!isValid) {
+    const tr = view.state.tr.setMeta(decorationPluginKey, true);
+    view.dispatch(tr);
+  }
+  return isValid;
+}
+
+/** Check whether the decoration plugin is currently in error mode. */
+export function isEditorInErrorMode(view: EditorView): boolean {
+  return decorationPluginKey.getState(view.state)?.showErrors ?? false;
 }

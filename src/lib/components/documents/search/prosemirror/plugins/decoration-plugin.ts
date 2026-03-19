@@ -1,4 +1,4 @@
-import { Plugin } from "prosemirror-state";
+import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
 import { serialize } from "../../utils/serialize";
@@ -9,9 +9,21 @@ import { validateQuery } from "../../utils/parse";
  *
  * Scans text content after each transaction and applies inline decorations
  * for boolean operators (AND, OR, NOT), parentheses, and prefix operators (+, -).
- * Also applies wavy underline error decorations when the query has invalid syntax.
+ * Error decorations (wavy underlines) are only shown after a submit attempt fails
+ * validation. Once in error mode, the plugin re-validates on each edit and keeps
+ * showing errors until the query becomes valid.
  * Decorations are ephemeral — they don't affect the document model or serialization.
  */
+
+export const decorationPluginKey = new PluginKey<DecorationPluginState>(
+  "search-decorations",
+);
+
+interface DecorationPluginState {
+  decorations: DecorationSet;
+  /** Whether we're in error mode (triggered by a failed submit). */
+  showErrors: boolean;
+}
 
 // Match AND, OR, NOT as whole words (word boundary on both sides)
 const OPERATOR_RE = /\b(AND|OR|NOT)\b/g;
@@ -112,7 +124,10 @@ function serializeAtomLength(node: ProseMirrorNode): number {
 
 const ATOM_TYPES = new Set(["field-value", "range", "sort"]);
 
-function buildDecorations(doc: ProseMirrorNode): DecorationSet {
+function buildDecorations(
+  doc: ProseMirrorNode,
+  includeErrors: boolean,
+): DecorationSet {
   const decorations: Decoration[] = [];
 
   doc.descendants((node, pos) => {
@@ -161,14 +176,16 @@ function buildDecorations(doc: ProseMirrorNode): DecorationSet {
     }
   });
 
-  // Error decorations for invalid syntax
-  const query = serialize(doc);
-  const validation = validateQuery(query);
-  if (!validation.isValid) {
-    const region = findErrorRegion(query, validation.error);
-    if (region) {
-      const errorDecos = mapErrorToDecorations(doc, region.from, region.to);
-      decorations.push(...errorDecos);
+  // Error decorations for invalid syntax (only when in error mode)
+  if (includeErrors) {
+    const query = serialize(doc);
+    const validation = validateQuery(query);
+    if (!validation.isValid) {
+      const region = findErrorRegion(query, validation.error);
+      if (region) {
+        const errorDecos = mapErrorToDecorations(doc, region.from, region.to);
+        decorations.push(...errorDecos);
+      }
     }
   }
 
@@ -244,21 +261,46 @@ function mapErrorToDecorations(
 }
 
 export function decorationPlugin() {
-  return new Plugin({
+  return new Plugin<DecorationPluginState>({
+    key: decorationPluginKey,
     state: {
       init(_, { doc }) {
-        return buildDecorations(doc);
+        return {
+          decorations: buildDecorations(doc, false),
+          showErrors: false,
+        };
       },
-      apply(tr, decorations) {
-        if (tr.docChanged) {
-          return buildDecorations(tr.doc);
+      apply(tr, pluginState) {
+        // Check if this transaction triggers error mode
+        const triggerErrors = tr.getMeta(decorationPluginKey);
+        if (triggerErrors === true) {
+          return {
+            decorations: buildDecorations(tr.doc, true),
+            showErrors: true,
+          };
         }
-        return decorations;
+
+        if (tr.docChanged) {
+          if (pluginState.showErrors) {
+            // In error mode: re-validate and exit error mode if now valid
+            const query = serialize(tr.doc);
+            const isValid = validateQuery(query).isValid;
+            return {
+              decorations: buildDecorations(tr.doc, !isValid),
+              showErrors: !isValid,
+            };
+          }
+          return {
+            decorations: buildDecorations(tr.doc, false),
+            showErrors: false,
+          };
+        }
+        return pluginState;
       },
     },
     props: {
       decorations(state) {
-        return this.getState(state);
+        return this.getState(state)?.decorations ?? DecorationSet.empty;
       },
     },
   });

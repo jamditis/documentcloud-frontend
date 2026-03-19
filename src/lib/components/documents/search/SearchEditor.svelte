@@ -17,6 +17,8 @@
     createSearchEditor,
     updateEditorQuery,
     getEditorQuery,
+    validateEditorQuery,
+    isEditorInErrorMode,
   } from "./prosemirror/searchEditor";
 
   import { Search16, Stop16 } from "svelte-octicons";
@@ -52,8 +54,8 @@
   let editorRef: HTMLDivElement | undefined = $state();
   let view: EditorView | undefined = $state();
 
-  /** Whether the current query is valid Lucene syntax. */
-  let queryValid = $state(true);
+  /** Whether the editor is showing validation errors. */
+  let hasErrors = $state(false);
 
   /** Last query emitted via the change event, to avoid redundant dispatches. */
   // svelte-ignore state_referenced_locally
@@ -65,11 +67,16 @@
   // svelte-ignore state_referenced_locally
   let lastInitialQuery = $state(initialQuery);
 
-  /** Upon submission, serialize the current PM document to a Lucene query string. */
+  /** Upon submission, validate and serialize the current PM document to a Lucene query string. */
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
-    if (!queryValid) return;
-    const query = view ? getEditorQuery(view) : initialQuery;
+    if (!view) return;
+    if (!validateEditorQuery(view)) {
+      hasErrors = true;
+      return;
+    }
+    hasErrors = false;
+    const query = getEditorQuery(view);
     onsubmit?.({ q: query });
   }
 
@@ -77,8 +84,12 @@
     view = createSearchEditor(editorRef!, {
       initialQuery,
       getPreloadedSuggestions: () => preloadedSuggestions,
-      onDocChange(q, structural, valid) {
-        queryValid = valid;
+      onDocChange(q, structural) {
+        // Sync error state with the decoration plugin (it clears errors
+        // automatically when the query becomes valid while in error mode)
+        if (hasErrors) {
+          hasErrors = isEditorInErrorMode(view!);
+        }
         if (q !== lastEmittedQuery) {
           lastEmittedQuery = q;
           // Only emit change for structural changes (atom insert/remove).
@@ -130,11 +141,11 @@
   aria-label="Search documents"
   onsubmit={handleSubmit}
 >
-  <div class="search-editor-status" class:invalid={!queryValid}>
-    {#if queryValid}
-      <Search16 />
-    {:else}
+  <div class="search-editor-status" class:invalid={hasErrors}>
+    {#if hasErrors}
       <Stop16 />
+    {:else}
+      <Search16 />
     {/if}
   </div>
   {#each contextAtoms as atom}
@@ -145,18 +156,18 @@
     class="prosemirror-editor"
     role="textbox"
     aria-label="Search documents"
-    aria-invalid={!queryValid ? true : undefined}
+    aria-invalid={hasErrors ? true : undefined}
   ></div>
   <Button
     type="submit"
     mode="primary"
     ghost
     minW={false}
-    disabled={!queryValid}
+    disabled={hasErrors}
     aria-label="Search">Search</Button
   >
   <div class="sr-only" aria-live="assertive" aria-atomic="true">
-    {#if !queryValid}Query syntax error{/if}
+    {#if hasErrors}Query syntax error{/if}
   </div>
 </form>
 

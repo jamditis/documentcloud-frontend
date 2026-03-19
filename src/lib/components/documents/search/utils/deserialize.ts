@@ -48,6 +48,7 @@ function isBinaryAST(ast: unknown): ast is BinaryAST {
  */
 export function deserialize(query: string): ProseMirrorNode {
   if (!query || !query.trim()) {
+    // This is an empty ProseMirror document
     return searchSchema.node("doc", null, [
       searchSchema.node("paragraph", null, []),
     ]);
@@ -60,8 +61,9 @@ export function deserialize(query: string): ProseMirrorNode {
     return searchSchema.node("doc", null, [
       searchSchema.node("paragraph", null, content),
     ]);
-  } catch {
+  } catch (e) {
     // Parse failed — fall back to the whole string as plain text
+    console.error("Search query parse failed:", e);
     return searchSchema.node("doc", null, [
       searchSchema.node("paragraph", null, [searchSchema.text(query)]),
     ]);
