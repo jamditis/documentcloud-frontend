@@ -36,7 +36,8 @@ const PAREN_RE = /[()]/g;
 const PREFIX_RE = /(?:^|(?<=\s))[+\-](?=\S)/g;
 
 // Match a prefix operator and the full term that follows it (for background highlighting)
-const PREFIX_TERM_RE = /(?:^|(?<=\s))[+\-]\S+/g;
+// Handles both unquoted terms (+term) and quoted terms (+"multi word")
+const PREFIX_TERM_RE = /(?:^|(?<=\s))[+\-](?:"[^"]*"?|\S+)/g;
 
 /**
  * Given the validation error message, find the error region as

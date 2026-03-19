@@ -266,6 +266,27 @@
     border-radius: 3px;
   }
 
+  /* Merge rounded corners for adjacent spans of the same highlight */
+  :global(.search-term-required + .search-term-required) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  :global(.search-term-required:has(+ .search-term-required)) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  :global(.search-term-excluded + .search-term-excluded) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  :global(.search-term-excluded:has(+ .search-term-excluded)) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
   /* Atom styles */
   :global(.search-atom) {
     display: inline;
