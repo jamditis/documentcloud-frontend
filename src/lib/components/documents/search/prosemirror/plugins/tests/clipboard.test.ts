@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, act } from "@testing-library/svelte";
 import SearchEditor from "../../../SearchEditor.svelte";
-import { searchSchema } from "../../schema";
 import { serialize } from "../../../utils/serialize";
 
 /** Mock DataTransfer for jsdom which doesn't have it */
