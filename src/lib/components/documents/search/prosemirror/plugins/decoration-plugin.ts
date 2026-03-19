@@ -1,7 +1,11 @@
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
-import { serialize } from "../../utils/serialize";
+import {
+  serialize,
+  serializeWithOffsets,
+  type TextOffsetSegment,
+} from "../../utils/serialize";
 import { validateQuery } from "../../utils/parse";
 
 /**
@@ -82,49 +86,6 @@ function findErrorRegion(
   return { from: 0, to: query.length };
 }
 
-/**
- * Compute the serialized length of an atom node.
- * Must match the logic in serialize.ts exactly.
- */
-function serializeAtomLength(node: ProseMirrorNode): number {
-  switch (node.type.name) {
-    case "field-value": {
-      const { field, value, prefix, boost, quoted } = node.attrs;
-      let len = 0;
-      if (prefix) len += (prefix as string).length;
-      len += (field as string).length + 1; // field + ":"
-      if (quoted) len += 1;
-      len += (value as string).length;
-      if (quoted) len += 1;
-      if (boost) len += 1 + String(boost).length; // ^boost
-      return len;
-    }
-    case "range": {
-      const { field, lower, upper, prefix } = node.attrs;
-      let len = 0;
-      if (prefix) len += (prefix as string).length;
-      len += (field as string).length + 1; // field + ":"
-      len += 1; // [ or {
-      len += (lower as string).length;
-      len += 4; // " TO "
-      len += (upper as string).length;
-      len += 1; // ] or }
-      return len;
-    }
-    case "sort": {
-      const { field, direction } = node.attrs;
-      let len = 5; // "sort:"
-      if (direction === "desc") len += 1; // "-"
-      len += (field as string).length;
-      return len;
-    }
-    default:
-      return 0;
-  }
-}
-
-const ATOM_TYPES = new Set(["field-value", "range", "sort"]);
-
 function buildDecorations(
   doc: ProseMirrorNode,
   includeErrors: boolean,
@@ -179,12 +140,16 @@ function buildDecorations(
 
   // Error decorations for invalid syntax (only when in error mode)
   if (includeErrors) {
-    const query = serialize(doc);
+    const { text: query, offsets } = serializeWithOffsets(doc);
     const validation = validateQuery(query);
     if (!validation.isValid) {
       const region = findErrorRegion(query, validation.error);
       if (region) {
-        const errorDecos = mapErrorToDecorations(doc, region.from, region.to);
+        const errorDecos = mapErrorToDecorations(
+          offsets,
+          region.from,
+          region.to,
+        );
         decorations.push(...errorDecos);
       }
     }
@@ -195,68 +160,27 @@ function buildDecorations(
 
 /**
  * Map an error region (from/to offsets in the serialized string) to
- * ProseMirror inline decorations. Walks the doc in serialize order,
- * tracking string offset, and creates decorations for text node regions
- * that overlap with the error region.
+ * ProseMirror inline decorations using the offset map from serializeWithOffsets().
  */
 function mapErrorToDecorations(
-  doc: ProseMirrorNode,
+  offsets: TextOffsetSegment[],
   errorFrom: number,
   errorTo: number,
 ): Decoration[] {
   const decorations: Decoration[] = [];
-  let strOffset = 0;
-  let lastWasAtom = false;
-  // Tracks whether the serialized string so far ends with a space,
-  // mirroring serialize()'s `result.endsWith(" ")` check.
-  let resultEndsWithSpace = false;
 
-  const paragraph = doc.firstChild;
-  if (!paragraph) return decorations;
+  for (const seg of offsets) {
+    const overlapStart = Math.max(seg.strFrom, errorFrom);
+    const overlapEnd = Math.min(seg.strTo, errorTo);
 
-  paragraph.forEach((node, offset) => {
-    const pmPos = offset + 1; // +1 for paragraph open tag
-
-    if (node.isText && node.text) {
-      const text = node.text.replace(/\u00A0/g, " ");
-
-      // Synthetic space: serialize() does `if (lastWasAtom && text.length > 0 && !text.startsWith(" "))`
-      if (lastWasAtom && text.length > 0 && !text.startsWith(" ")) {
-        strOffset += 1;
-      }
-
-      const textStrStart = strOffset;
-      const textStrEnd = strOffset + text.length;
-
-      // Check overlap between [textStrStart, textStrEnd) and [errorFrom, errorTo)
-      const overlapStart = Math.max(textStrStart, errorFrom);
-      const overlapEnd = Math.min(textStrEnd, errorTo);
-
-      if (overlapStart < overlapEnd) {
-        const pmFrom = pmPos + (overlapStart - textStrStart);
-        const pmTo = pmPos + (overlapEnd - textStrStart);
-        decorations.push(
-          Decoration.inline(pmFrom, pmTo, { class: "search-syntax-error" }),
-        );
-      }
-
-      strOffset = textStrEnd;
-      lastWasAtom = false;
-      resultEndsWithSpace = text.endsWith(" ");
-      return;
+    if (overlapStart < overlapEnd) {
+      const pmFrom = seg.pmPos + (overlapStart - seg.strFrom);
+      const pmTo = seg.pmPos + (overlapEnd - seg.strFrom);
+      decorations.push(
+        Decoration.inline(pmFrom, pmTo, { class: "search-syntax-error" }),
+      );
     }
-
-    if (ATOM_TYPES.has(node.type.name)) {
-      // Synthetic space: serialize() does `if (isAtom && result.length > 0 && !result.endsWith(" "))`
-      if (strOffset > 0 && !resultEndsWithSpace) {
-        strOffset += 1;
-      }
-
-      strOffset += serializeAtomLength(node);
-      lastWasAtom = true;
-      resultEndsWithSpace = false; // atom serialization never ends with space
-    }
-  });
+  }
 
   return decorations;
 }
