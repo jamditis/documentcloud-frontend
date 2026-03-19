@@ -163,7 +163,7 @@
 <style>
   .search-editor-container {
     flex: 1 1 auto;
-    min-width: 16rem;
+    min-width: 0;
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: white;
@@ -187,6 +187,8 @@
 
   .prosemirror-editor {
     flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
     padding: 0.375rem 0.75rem;
   }
 
@@ -214,6 +216,7 @@
     pointer-events: none;
     float: left;
     height: 0;
+    white-space: nowrap;
   }
 
   /* Decoration styles for operators, parens, and prefixes */
