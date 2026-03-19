@@ -4,7 +4,7 @@ import {
   fieldValueLabel,
   rangeLabel,
   sortLabel,
-  chipLabel,
+  atomLabel,
 } from "../label.js";
 
 describe("displayBound", () => {
@@ -123,26 +123,26 @@ describe("sortLabel", () => {
   });
 });
 
-describe("chipLabel", () => {
+describe("atomLabel", () => {
   test("delegates to fieldValueLabel", () => {
-    expect(chipLabel("field-value", { field: "user", value: "1" })).toBe(
+    expect(atomLabel("field-value", { field: "user", value: "1" })).toBe(
       "user: 1",
     );
   });
 
   test("delegates to rangeLabel", () => {
     expect(
-      chipLabel("range", { field: "pages", lower: "1", upper: "10" }),
+      atomLabel("range", { field: "pages", lower: "1", upper: "10" }),
     ).toBe("pages: from 1 to 10");
   });
 
   test("delegates to sortLabel", () => {
-    expect(chipLabel("sort", { field: "created_at", direction: "desc" })).toBe(
+    expect(atomLabel("sort", { field: "created_at", direction: "desc" })).toBe(
       "Sort by created_at, descending",
     );
   });
 
   test("returns empty string for unknown type", () => {
-    expect(chipLabel("unknown", {})).toBe("");
+    expect(atomLabel("unknown", {})).toBe("");
   });
 });

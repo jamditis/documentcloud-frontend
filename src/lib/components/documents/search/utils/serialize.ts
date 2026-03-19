@@ -14,7 +14,7 @@ import type { Node as ProseMirrorNode, Fragment } from "prosemirror-model";
 export function serialize(docOrFragment: ProseMirrorNode | Fragment): string {
   let result = "";
 
-  /** True when the last thing emitted was an atom node (chip). */
+  /** True when the last thing emitted was an atom node. */
   let lastWasAtom = false;
 
   const processNode = (node: ProseMirrorNode) => {
@@ -22,7 +22,7 @@ export function serialize(docOrFragment: ProseMirrorNode | Fragment): string {
       // Normalize non-breaking spaces (\u00A0) that ProseMirror inserts
       // in contenteditable to prevent browser space collapsing
       const text = (node.text ?? "").replace(/\u00A0/g, " ");
-      // Ensure a space between a preceding chip and text
+      // Ensure a space between a preceding atom and text
       if (lastWasAtom && text.length > 0 && !text.startsWith(" ")) {
         result += " ";
       }
@@ -36,7 +36,7 @@ export function serialize(docOrFragment: ProseMirrorNode | Fragment): string {
       node.type.name === "range" ||
       node.type.name === "sort";
 
-    // Ensure a space between adjacent nodes and chips
+    // Ensure a space between adjacent nodes and atoms
     if (isAtom && result.length > 0 && !result.endsWith(" ")) {
       result += " ";
     }

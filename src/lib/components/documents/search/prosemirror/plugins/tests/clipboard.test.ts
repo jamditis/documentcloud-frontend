@@ -67,12 +67,12 @@ describe("Clipboard plugin", () => {
       const query = serialize(doc);
       expect(query).toBe("user:102112 AND access:private");
 
-      // Verify chips are created
-      let chipCount = 0;
+      // Verify atoms are created
+      let atomCount = 0;
       doc.descendants((node) => {
-        if (node.type.name === "field-value") chipCount++;
+        if (node.type.name === "field-value") atomCount++;
       });
-      expect(chipCount).toBe(2);
+      expect(atomCount).toBe(2);
     });
 
     it("clipboardTextParser handles sort directives", async () => {

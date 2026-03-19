@@ -1,6 +1,6 @@
 <!--
-  ChipEditor is a popover for editing chip modifiers (required/excluded, boost, delete).
-  It's anchored to a chip element using @floating-ui/dom.
+  AtomEditor is a popover for editing atom modifiers (required/excluded, boost, delete).
+  It's anchored to an atom element using @floating-ui/dom.
 -->
 <script lang="ts">
   import { onMount, onDestroy, tick } from "svelte";
@@ -148,13 +148,13 @@
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <div
   bind:this={popover}
-  class="chip-editor"
+  class="atom-editor"
   role="dialog"
-  aria-label="Edit chip"
+  aria-label="Edit atom"
   tabindex="0"
   onkeydown={handleKeydown}
 >
-  <div class="chip-editor-row">
+  <div class="atom-editor-row">
     <Button
       small
       premium
@@ -182,9 +182,9 @@
   </div>
 
   {#if showBoost && onBoostChange}
-    <div class="chip-editor-row chip-editor-boost">
-      <span class="chip-editor-label">Boost</span>
-      <div class="chip-editor-stepper">
+    <div class="atom-editor-row atom-editor-boost">
+      <span class="atom-editor-label">Boost</span>
+      <div class="atom-editor-stepper">
         <Button
           small
           ghost
@@ -196,7 +196,7 @@
         >
           <ArrowDown16 />
         </Button>
-        <span class="chip-editor-boost-value">{boost ?? "1"}</span>
+        <span class="atom-editor-boost-value">{boost ?? "1"}</span>
         <Button
           small
           ghost
@@ -211,7 +211,7 @@
     </div>
   {/if}
 
-  <hr class="chip-editor-separator" />
+  <hr class="atom-editor-separator" />
 
   <Button mode="danger" size="small" ghost full on:click={handleDelete}>
     Remove
@@ -219,7 +219,7 @@
 </div>
 
 <style>
-  .chip-editor {
+  .atom-editor {
     font-family: var(--font-sans);
     position: fixed;
     background-color: white;
@@ -232,44 +232,44 @@
     outline: none;
   }
 
-  .chip-editor:focus-visible {
+  .atom-editor:focus-visible {
     border-color: var(--blue-3, #0969da);
     box-shadow:
       0 4px 12px rgba(0, 0, 0, 0.12),
       0 0 0 2px rgba(9, 105, 218, 0.2);
   }
 
-  .chip-editor-row {
+  .atom-editor-row {
     display: flex;
     gap: 4px;
     margin-bottom: 4px;
   }
 
-  .chip-editor-boost {
+  .atom-editor-boost {
     align-items: center;
     justify-content: space-between;
   }
 
-  .chip-editor-label {
+  .atom-editor-label {
     font-size: var(--font-sm, 14px);
     font-weight: var(--font-semibold, 600);
     color: var(--gray-5, #6e7781);
   }
 
-  .chip-editor-stepper {
+  .atom-editor-stepper {
     display: flex;
     align-items: center;
     gap: 4px;
   }
 
-  .chip-editor-boost-value {
+  .atom-editor-boost-value {
     min-width: 20px;
     text-align: center;
     font-size: var(--font-sm, 14px);
     font-weight: 600;
   }
 
-  .chip-editor-separator {
+  .atom-editor-separator {
     border: none;
     border-top: 1px solid var(--gray-2, #d0d7de);
     margin: 4px 0;

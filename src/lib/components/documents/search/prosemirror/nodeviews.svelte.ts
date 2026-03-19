@@ -5,21 +5,21 @@
  * mounted as its NodeView. The NodeView reads attributes from the PM node
  * and passes them as props to the Svelte component.
  *
- * Field-value and range chips open a ChipEditor popover when selected
- * (via click or arrow-key navigation). Sort chips toggle direction on click.
+ * Field-value and range atoms open an AtomEditor popover when selected
+ * (via click or arrow-key navigation). Sort atoms toggle direction on click.
  */
 import type { NodeView, EditorView } from "prosemirror-view";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
 import { NodeSelection } from "prosemirror-state";
 import { mount, unmount } from "svelte";
 
-import FieldValueChip from "../FieldValueChip.svelte";
-import RangeChip from "../RangeChip.svelte";
-import SortChip from "../SortChip.svelte";
-import ChipEditor from "../ChipEditor.svelte";
-import { chipLabel } from "../utils/label";
+import FieldValueAtom from "../FieldValueAtom.svelte";
+import RangeAtom from "../RangeAtom.svelte";
+import SortAtom from "../SortAtom.svelte";
+import AtomEditor from "../AtomEditor.svelte";
+import { atomLabel } from "../utils/label";
 
-type ChipBehavior = "edit" | "toggle-sort";
+type AtomBehavior = "edit" | "toggle-sort";
 
 /** Generic Svelte NodeView mounts a component with node attrs as props */
 class SvelteNodeView implements NodeView {
@@ -28,19 +28,19 @@ class SvelteNodeView implements NodeView {
   dom: HTMLElement;
   private component: Record<string, any>;
   private componentProps: Record<string, any>;
-  private chipEditor: Record<string, any> | null = null;
-  private chipEditorProps: Record<string, any> = $state({});
-  private chipEditorContainer: HTMLElement | null = null;
+  private atomEditor: Record<string, any> | null = null;
+  private atomEditorProps: Record<string, any> = $state({});
+  private atomEditorContainer: HTMLElement | null = null;
   private view: EditorView;
   private getPos: () => number | undefined;
-  private behavior: ChipBehavior;
+  private behavior: AtomBehavior;
 
   constructor(
     ComponentClass: any,
     node: ProseMirrorNode,
     view: EditorView,
     getPos: boolean | (() => number | undefined),
-    behavior: ChipBehavior,
+    behavior: AtomBehavior,
   ) {
     this.view = view;
     this.getPos = getPos as () => number | undefined;
@@ -52,10 +52,10 @@ class SvelteNodeView implements NodeView {
     this.dom.style.display = "inline-block";
     this.dom.style.cursor = "pointer";
     this.dom.style.userSelect = "none";
-    this.dom.id = `search-chip-${SvelteNodeView.nextId++}`;
+    this.dom.id = `search-atom-${SvelteNodeView.nextId++}`;
     this.dom.setAttribute("tabindex", "-1");
     this.dom.setAttribute("role", "option");
-    this.dom.setAttribute("aria-label", chipLabel(node.type.name, node.attrs));
+    this.dom.setAttribute("aria-label", atomLabel(node.type.name, node.attrs));
 
     this.componentProps = $state({ ...node.attrs });
     this.component = mount(ComponentClass, {
@@ -79,7 +79,7 @@ class SvelteNodeView implements NodeView {
     if (this.behavior === "edit") {
       const pos = this.getPos();
       if (pos !== undefined) {
-        this.openChipEditor(pos);
+        this.openAtomEditor(pos);
       }
     }
   }
@@ -90,12 +90,12 @@ class SvelteNodeView implements NodeView {
    */
   deselectNode() {
     this.dom.classList.remove("ProseMirror-selectednode");
-    // Only remove if it still points to this chip (autocomplete may have taken over)
+    // Only remove if it still points to this atom (autocomplete may have taken over)
     if (this.view.dom.getAttribute("aria-activedescendant") === this.dom.id) {
       this.view.dom.removeAttribute("aria-activedescendant");
     }
     if (this.behavior === "edit") {
-      this.closeChipEditor();
+      this.closeAtomEditor();
     }
   }
 
@@ -133,34 +133,34 @@ class SvelteNodeView implements NodeView {
   }
 
   /** When a FieldValue or Range node is selected, we open an editor to tailor its details. */
-  private openChipEditor(pos: number) {
+  private openAtomEditor(pos: number) {
     // Already open
-    if (this.chipEditor) return;
+    if (this.atomEditor) return;
 
     const node = this.view.state.doc.nodeAt(pos);
     if (!node) return;
 
     const showBoost = node.type.name === "field-value";
 
-    this.chipEditorContainer = document.createElement("div");
-    document.body.appendChild(this.chipEditorContainer);
+    this.atomEditorContainer = document.createElement("div");
+    document.body.appendChild(this.atomEditorContainer);
 
-    Object.assign(this.chipEditorProps, {
+    Object.assign(this.atomEditorProps, {
       prefix: node.attrs.prefix ?? null,
       boost: showBoost ? (node.attrs.boost ?? null) : null,
       showBoost,
       anchor: this.dom,
       onPrefixChange: (newPrefix: string | null) => {
         this.updateNodeAttrs({ prefix: newPrefix });
-        if (this.chipEditorProps) {
-          this.chipEditorProps.prefix = newPrefix;
+        if (this.atomEditorProps) {
+          this.atomEditorProps.prefix = newPrefix;
         }
       },
       onBoostChange: showBoost
         ? (newBoost: number | null) => {
             this.updateNodeAttrs({ boost: newBoost });
-            if (this.chipEditorProps) {
-              this.chipEditorProps.boost = newBoost;
+            if (this.atomEditorProps) {
+              this.atomEditorProps.boost = newBoost;
             }
           }
         : null,
@@ -179,38 +179,38 @@ class SvelteNodeView implements NodeView {
         this.view.focus();
       },
       onClose: () => {
-        this.closeChipEditor();
+        this.closeAtomEditor();
         this.view.focus();
       },
     });
 
-    this.chipEditor = mount(ChipEditor, {
-      target: this.chipEditorContainer,
-      props: this.chipEditorProps,
+    this.atomEditor = mount(AtomEditor, {
+      target: this.atomEditorContainer,
+      props: this.atomEditorProps,
     });
   }
 
-  private closeChipEditor() {
-    if (this.chipEditor) {
-      unmount(this.chipEditor);
-      this.chipEditor = null;
+  private closeAtomEditor() {
+    if (this.atomEditor) {
+      unmount(this.atomEditor);
+      this.atomEditor = null;
     }
-    if (this.chipEditorContainer) {
-      this.chipEditorContainer.remove();
-      this.chipEditorContainer = null;
+    if (this.atomEditorContainer) {
+      this.atomEditorContainer.remove();
+      this.atomEditorContainer = null;
     }
   }
 
   /** Update the component when the node's attributes change */
   update(node: ProseMirrorNode): boolean {
     Object.assign(this.componentProps, node.attrs);
-    this.dom.setAttribute("aria-label", chipLabel(node.type.name, node.attrs));
+    this.dom.setAttribute("aria-label", atomLabel(node.type.name, node.attrs));
     return true;
   }
 
   /** Clean up the Svelte component on destroy */
   destroy() {
-    this.closeChipEditor();
+    this.closeAtomEditor();
     this.dom.removeEventListener("click", this.toggleSort);
     unmount(this.component);
   }
@@ -227,7 +227,7 @@ export function fieldValueNodeView(
   view: EditorView,
   getPos: (() => number | undefined) | boolean,
 ): NodeView {
-  return new SvelteNodeView(FieldValueChip, node, view, getPos, "edit");
+  return new SvelteNodeView(FieldValueAtom, node, view, getPos, "edit");
 }
 
 /** NodeView constructor for range nodes */
@@ -236,7 +236,7 @@ export function rangeNodeView(
   view: EditorView,
   getPos: (() => number | undefined) | boolean,
 ): NodeView {
-  return new SvelteNodeView(RangeChip, node, view, getPos, "edit");
+  return new SvelteNodeView(RangeAtom, node, view, getPos, "edit");
 }
 
 /** NodeView constructor for sort nodes */
@@ -245,7 +245,7 @@ export function sortNodeView(
   view: EditorView,
   getPos: (() => number | undefined) | boolean,
 ): NodeView {
-  return new SvelteNodeView(SortChip, node, view, getPos, "toggle-sort");
+  return new SvelteNodeView(SortAtom, node, view, getPos, "toggle-sort");
 }
 
 /** All NodeView constructors, ready to pass to EditorView */

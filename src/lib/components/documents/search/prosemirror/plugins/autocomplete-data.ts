@@ -11,9 +11,9 @@ import { search as searchDocuments } from "$lib/api/documents";
 
 /** How a field selection is inserted into the editor. */
 export type InsertBehavior =
-  | "field-value-chip"
-  | "sort-chip"
-  | "range-chip"
+  | "field-value-atom"
+  | "sort-atom"
+  | "range-atom"
   | "text";
 
 export interface FieldDef {
@@ -34,62 +34,62 @@ export interface Suggestion {
 // ── Field catalog ──────────────────────────────────────────────
 
 const FIELDS: FieldDef[] = [
-  // Chippable with static values
+  // Atom fields with static values
   {
     name: "access",
     label: "Access",
     description: "Access level",
-    insertBehavior: "field-value-chip",
+    insertBehavior: "field-value-atom",
     hasValueSuggestions: true,
   },
   {
     name: "status",
     label: "Status",
     description: "Processing status",
-    insertBehavior: "field-value-chip",
+    insertBehavior: "field-value-atom",
     hasValueSuggestions: true,
   },
   {
     name: "language",
     label: "Language",
     description: "Document language",
-    insertBehavior: "field-value-chip",
+    insertBehavior: "field-value-atom",
     hasValueSuggestions: true,
   },
-  // Chippable — API-backed values
+  // Atom fields — API-backed values
   {
     name: "user",
     label: "User",
     description: "Filter by user",
-    insertBehavior: "field-value-chip",
+    insertBehavior: "field-value-atom",
     hasValueSuggestions: true,
   },
   {
     name: "organization",
     label: "Organization",
     description: "Filter by organization",
-    insertBehavior: "field-value-chip",
+    insertBehavior: "field-value-atom",
     hasValueSuggestions: true,
   },
   {
     name: "project",
     label: "Project",
     description: "Filter by project",
-    insertBehavior: "field-value-chip",
+    insertBehavior: "field-value-atom",
     hasValueSuggestions: true,
   },
   {
     name: "document",
     label: "Document",
     description: "Filter by document ID",
-    insertBehavior: "field-value-chip",
+    insertBehavior: "field-value-atom",
     hasValueSuggestions: true,
   },
   {
     name: "tag",
     label: "Tag",
     description: "Filter by tag",
-    insertBehavior: "field-value-chip",
+    insertBehavior: "field-value-atom",
     hasValueSuggestions: false,
   },
   // Sort
@@ -97,7 +97,7 @@ const FIELDS: FieldDef[] = [
     name: "sort",
     label: "Sort",
     description: "Sort results",
-    insertBehavior: "sort-chip",
+    insertBehavior: "sort-atom",
     hasValueSuggestions: true,
   },
   // Plain-text fields (insert "field:" as text)
@@ -133,21 +133,21 @@ const FIELDS: FieldDef[] = [
     name: "created_at",
     label: "Created At",
     description: "Filter by creation date",
-    insertBehavior: "range-chip",
+    insertBehavior: "range-atom",
     hasValueSuggestions: false,
   },
   {
     name: "updated_at",
     label: "Updated At",
     description: "Filter by update date",
-    insertBehavior: "range-chip",
+    insertBehavior: "range-atom",
     hasValueSuggestions: false,
   },
   {
     name: "page_count",
     label: "Page Count",
     description: "Filter by page count",
-    insertBehavior: "range-chip",
+    insertBehavior: "range-atom",
     hasValueSuggestions: false,
   },
   {
@@ -293,7 +293,7 @@ export function resolveField(name: string): FieldDef | undefined {
       name: canonical,
       label: canonical.replace(/^data_/, ""),
       description: `Data field: ${canonical.replace(/^data_/, "")}`,
-      insertBehavior: "field-value-chip",
+      insertBehavior: "field-value-atom",
       hasValueSuggestions: false, // suggestions come from preloaded data
     };
   }

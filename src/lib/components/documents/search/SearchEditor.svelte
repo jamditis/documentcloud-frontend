@@ -21,12 +21,12 @@
 
   import { Search16, Stop16 } from "svelte-octicons";
   import Button from "$lib/components/common/Button.svelte";
-  import FieldValueChip from "$lib/components/documents/search/FieldValueChip.svelte";
+  import FieldValueAtom from "$lib/components/documents/search/FieldValueAtom.svelte";
 
   interface Props {
     initialQuery?: string;
-    /** Locked chips displayed before the editor as search context (e.g. project scope). */
-    contextChips?: Array<{
+    /** Locked atoms displayed before the editor as search context (e.g. project scope). */
+    contextAtoms?: Array<{
       field: string;
       label: string;
     }>;
@@ -43,7 +43,7 @@
 
   let {
     initialQuery = "",
-    contextChips = [],
+    contextAtoms = [],
     preloadedSuggestions = {},
     onsubmit,
     onchange,
@@ -81,7 +81,7 @@
         queryValid = valid;
         if (q !== lastEmittedQuery) {
           lastEmittedQuery = q;
-          // Only emit change for structural changes (chip insert/remove).
+          // Only emit change for structural changes (atom insert/remove).
           // Plain text typing should not trigger searches — the user must
           // explicitly submit the form for text-only queries.
           if (structural) {
@@ -137,8 +137,8 @@
       <Stop16 />
     {/if}
   </div>
-  {#each contextChips as chip}
-    <FieldValueChip field={chip.field} value={chip.label} locked />
+  {#each contextAtoms as atom}
+    <FieldValueAtom field={atom.field} value={atom.label} locked />
   {/each}
   <div
     bind:this={editorRef}
@@ -252,8 +252,8 @@
     border-radius: 3px;
   }
 
-  /* Chip styles (used by atom nodes) */
-  :global(.search-chip) {
+  /* Atom styles */
+  :global(.search-atom) {
     display: inline;
     border-radius: 0.25rem;
     padding: 0 4px;
@@ -261,8 +261,8 @@
     white-space: nowrap;
   }
 
-  /* Selected chip — ProseMirror adds this class when an atom node is selected */
-  :global(.ProseMirror-selectednode .search-chip) {
+  /* Selected atom — ProseMirror adds this class when an atom node is selected */
+  :global(.ProseMirror-selectednode .search-atom) {
     outline: 1px solid var(--blue-3);
     border-radius: 0.25rem;
   }

@@ -13,7 +13,7 @@
     initialQuery: "example query",
   };
 
-  // MSW handlers for API-backed autocomplete and chip enrichment.
+  // MSW handlers for API-backed autocomplete and atom enrichment.
   // Use exact paths (no wildcard) — these endpoints only vary by query params.
   const usersUrl = createApiUrl("users/");
   const orgsUrl = createApiUrl("organizations/");
@@ -181,9 +181,9 @@
   {template}
 />
 
-<!-- Phase 4: Deserialization produces chips automatically from initialQuery -->
+<!-- Phase 4: Deserialization produces atoms automatically from initialQuery -->
 <Story
-  name="Chips / Field Values"
+  name="Atoms / Field Values"
   args={{
     ...args,
     initialQuery: "user:102112 access:private",
@@ -191,7 +191,7 @@
   {template}
 />
 <Story
-  name="Chips / Range"
+  name="Atoms / Range"
   args={{
     ...args,
     initialQuery: "created_at:[NOW-1MONTH TO *] report",
@@ -199,7 +199,7 @@
   {template}
 />
 <Story
-  name="Chips / Sort"
+  name="Atoms / Sort"
   args={{
     ...args,
     initialQuery: "mueller sort:page_count",
@@ -207,7 +207,7 @@
   {template}
 />
 <Story
-  name="Chips / Mixed Query"
+  name="Atoms / Mixed Query"
   args={{
     ...args,
     initialQuery:
@@ -216,7 +216,7 @@
   {template}
 />
 <Story
-  name="Chips / Prefixes"
+  name="Atoms / Prefixes"
   args={{
     ...args,
     initialQuery: "+user:102112 -access:private",
@@ -231,7 +231,7 @@
   {template}
 />
 <Story
-  name="API / Enriched Chips"
+  name="API / Enriched Atoms"
   args={{
     ...args,
     initialQuery: "user:7143 organization:10010 project:1",
@@ -247,7 +247,7 @@
   {template}
 />
 <Story
-  name="Mobile / With Chips"
+  name="Mobile / With Atoms"
   args={{
     ...args,
     initialQuery:
@@ -263,7 +263,7 @@
   {template}
 />
 <Story
-  name="Tablet / With Chips"
+  name="Tablet / With Atoms"
   args={{
     ...args,
     initialQuery:

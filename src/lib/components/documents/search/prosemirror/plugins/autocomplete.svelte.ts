@@ -80,7 +80,7 @@ function computeAutocompleteState(
   if (resolvedPos.parent.type.name !== "paragraph") return null;
 
   // Get text from start of paragraph to cursor.
-  // Use space as the leaf-text separator so atom nodes (chips) produce a
+  // Use space as the leaf-text separator so atom nodes produce a
   // space boundary, keeping word detection correct.
   const textBeforeCursor = doc.textBetween(resolvedPos.start(), from, " ", " ");
 
@@ -184,7 +184,7 @@ function applyFieldSuggestion(
   const fieldDef = resolveField(suggestion.value);
 
   // Range fields: replace typed text with "field:" and transition to range stage
-  if (fieldDef?.insertBehavior === "range-chip") {
+  if (fieldDef?.insertBehavior === "range-atom") {
     const rangeConfig = getRangeConfig(suggestion.value);
     if (rangeConfig) {
       const fieldText = `${suggestion.value}:`;
@@ -304,7 +304,7 @@ function applyValueSuggestion(view: EditorView, suggestion: Suggestion): void {
     // At end of doc — no trailing quote
   }
 
-  if (fieldDef.insertBehavior === "sort-chip") {
+  if (fieldDef.insertBehavior === "sort-atom") {
     // Sort: parse direction from value (e.g., "-created_at" → desc)
     let sortField = suggestion.value;
     let direction = "asc";
@@ -319,11 +319,11 @@ function applyValueSuggestion(view: EditorView, suggestion: Suggestion): void {
     });
 
     tr.replaceWith(state.from, replaceTo, sortNode);
-    // Add a space after the chip and place cursor there
-    const afterChip = state.from + sortNode.nodeSize;
-    tr.insertText("\u00A0", afterChip);
-    tr.setSelection(TextSelection.create(tr.doc, afterChip + 1));
-  } else if (fieldDef.insertBehavior === "field-value-chip") {
+    // Add a space after the atom and place cursor there
+    const afterAtom = state.from + sortNode.nodeSize;
+    tr.insertText("\u00A0", afterAtom);
+    tr.setSelection(TextSelection.create(tr.doc, afterAtom + 1));
+  } else if (fieldDef.insertBehavior === "field-value-atom") {
     // Extract prefix from the original text if present
     const originalText = view.state.doc.textBetween(state.from, replaceTo);
     let prefix: string | null = null;
@@ -331,7 +331,7 @@ function applyValueSuggestion(view: EditorView, suggestion: Suggestion): void {
       prefix = originalText.charAt(0);
     }
 
-    const chipNode = searchSchema.nodes["field-value"].create({
+    const atomNode = searchSchema.nodes["field-value"].create({
       field: state.fieldName,
       value: suggestion.value,
       prefix,
@@ -339,10 +339,10 @@ function applyValueSuggestion(view: EditorView, suggestion: Suggestion): void {
       displayValue: isAsyncField(state.fieldName) ? suggestion.label : null,
     });
 
-    tr.replaceWith(state.from, replaceTo, chipNode);
-    const afterChip = state.from + chipNode.nodeSize;
-    tr.insertText("\u00A0", afterChip);
-    tr.setSelection(TextSelection.create(tr.doc, afterChip + 1));
+    tr.replaceWith(state.from, replaceTo, atomNode);
+    const afterAtom = state.from + atomNode.nodeSize;
+    tr.insertText("\u00A0", afterAtom);
+    tr.setSelection(TextSelection.create(tr.doc, afterAtom + 1));
   }
 
   tr.setMeta(autocompletePluginKey, INACTIVE);
@@ -386,9 +386,9 @@ function applyRangeShortcut(view: EditorView, suggestion: Suggestion): void {
   });
 
   tr.replaceWith(state.from, state.to, rangeNode);
-  const afterChip = state.from + rangeNode.nodeSize;
-  tr.insertText("\u00A0", afterChip);
-  tr.setSelection(TextSelection.create(tr.doc, afterChip + 1));
+  const afterAtom = state.from + rangeNode.nodeSize;
+  tr.insertText("\u00A0", afterAtom);
+  tr.setSelection(TextSelection.create(tr.doc, afterAtom + 1));
 
   tr.setMeta(autocompletePluginKey, INACTIVE);
   view.dispatch(tr);
@@ -445,9 +445,9 @@ function applyCustomRange(
   });
 
   tr.replaceWith(state.from, state.to, rangeNode);
-  const afterChip = state.from + rangeNode.nodeSize;
-  tr.insertText("\u00A0", afterChip);
-  tr.setSelection(TextSelection.create(tr.doc, afterChip + 1));
+  const afterAtom = state.from + rangeNode.nodeSize;
+  tr.insertText("\u00A0", afterAtom);
+  tr.setSelection(TextSelection.create(tr.doc, afterAtom + 1));
 
   tr.setMeta(autocompletePluginKey, INACTIVE);
   view.dispatch(tr);
@@ -477,17 +477,17 @@ function applyFixedValue(view: EditorView, value: string): void {
     prefix = originalText.charAt(0);
   }
 
-  const chipNode = searchSchema.nodes["field-value"].create({
+  const atomNode = searchSchema.nodes["field-value"].create({
     field: state.fieldName,
     value: finalValue,
     prefix,
     quoted: false,
   });
 
-  tr.replaceWith(state.from, state.to, chipNode);
-  const afterChip = state.from + chipNode.nodeSize;
-  tr.insertText("\u00A0", afterChip);
-  tr.setSelection(TextSelection.create(tr.doc, afterChip + 1));
+  tr.replaceWith(state.from, state.to, atomNode);
+  const afterAtom = state.from + atomNode.nodeSize;
+  tr.insertText("\u00A0", afterAtom);
+  tr.setSelection(TextSelection.create(tr.doc, afterAtom + 1));
 
   tr.setMeta(autocompletePluginKey, INACTIVE);
   view.dispatch(tr);
@@ -735,7 +735,7 @@ export function autocompletePlugin(
       editorDom.setAttribute("aria-expanded", "false");
       editorDom.setAttribute("aria-controls", dropdownId);
 
-      /** Only clear aria-activedescendant if autocomplete set it (not chip selection). */
+      /** Only clear aria-activedescendant if autocomplete set it (not atom selection). */
       function clearActiveDescendant() {
         const current = editorDom.getAttribute("aria-activedescendant");
         if (current && current.startsWith(dropdownId)) {

@@ -1,8 +1,8 @@
 /**
- * ProseMirror keymap plugin for keyboard navigation around atom nodes (chips).
+ * ProseMirror keymap plugin for keyboard navigation around atom nodes.
  *
  * - ArrowLeft/Right: select an adjacent atom instead of jumping over it
- * - ArrowDown: move focus into a chip's popover editor (if open)
+ * - ArrowDown: move focus into an atom's popover editor (if open)
  */
 import { NodeSelection, TextSelection, type Command } from "prosemirror-state";
 import { keymap } from "prosemirror-keymap";
@@ -11,7 +11,7 @@ const ATOM_TYPES = new Set(["field-value", "range", "sort"]);
 
 /**
  * Arrow-left: if the cursor (empty TextSelection) is immediately
- * after a chip node, select it instead of jumping over it.
+ * after an atom node, select it instead of jumping over it.
  */
 const arrowLeftIntoAtom: Command = (state, dispatch) => {
   const { selection } = state;
@@ -31,7 +31,7 @@ const arrowLeftIntoAtom: Command = (state, dispatch) => {
 
 /**
  * Arrow-right: if the cursor (empty TextSelection) is immediately
- * before a chip node, select it instead of jumping over it.
+ * before an atom node, select it instead of jumping over it.
  */
 const arrowRightIntoAtom: Command = (state, dispatch) => {
   const { selection } = state;
@@ -46,30 +46,30 @@ const arrowRightIntoAtom: Command = (state, dispatch) => {
 };
 
 /**
- * Arrow-down: if a chip with a popover is selected, move focus
- * into the chip editor popover.
+ * Arrow-down: if an atom with a popover is selected, move focus
+ * into the atom editor popover.
  */
 const arrowDownIntoPopover: Command = (state) => {
   if (!(state.selection instanceof NodeSelection)) return false;
   const node = state.selection.node;
   if (!ATOM_TYPES.has(node.type.name) || node.type.name === "sort")
     return false;
-  const popover = document.querySelector(".chip-editor") as HTMLElement;
+  const popover = document.querySelector(".atom-editor") as HTMLElement;
   if (!popover) return false;
   popover.focus();
   return true;
 };
 
 /**
- * Tab: if a chip with a popover is selected, move focus
- * into the chip editor popover (same as ArrowDown).
+ * Tab: if an atom with a popover is selected, move focus
+ * into the atom editor popover (same as ArrowDown).
  */
 const tabIntoPopover: Command = (state) => {
   if (!(state.selection instanceof NodeSelection)) return false;
   const node = state.selection.node;
   if (!ATOM_TYPES.has(node.type.name) || node.type.name === "sort")
     return false;
-  const popover = document.querySelector(".chip-editor") as HTMLElement;
+  const popover = document.querySelector(".atom-editor") as HTMLElement;
   if (!popover) return false;
   popover.focus();
   return true;

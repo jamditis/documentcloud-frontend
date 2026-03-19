@@ -1,5 +1,5 @@
 <!--
-  RangeChip renders a range atom.
+  RangeAtom renders a range atom node.
   Shows field name, bounds, and bracket style (inclusive/exclusive).
 -->
 <script lang="ts">
@@ -29,26 +29,26 @@
   let displayLower = $derived(displayBound(lower));
   let displayUpper = $derived(displayBound(upper));
 
-  let chipLabel = $derived(
+  let atomLabel = $derived(
     rangeLabel({ field, lower, upper, inclusiveLower, inclusiveUpper, prefix }),
   );
 </script>
 
 <span
-  class="search-chip search-range"
-  class:chip-required={prefix === "+"}
-  class:chip-excluded={prefix === "-"}
-  aria-label={chipLabel}
+  class="search-atom search-range"
+  class:atom-required={prefix === "+"}
+  class:atom-excluded={prefix === "-"}
+  aria-label={atomLabel}
 >
   {#if prefix}
     <span
-      class="chip-prefix"
-      class:chip-prefix-required={prefix === "+"}
-      class:chip-prefix-excluded={prefix === "-"}>{prefix}</span
+      class="atom-prefix"
+      class:atom-prefix-required={prefix === "+"}
+      class:atom-prefix-excluded={prefix === "-"}>{prefix}</span
     >
   {/if}
-  <span class="chip-field">{field}</span>
-  <span class="chip-bounds">{lb}{displayLower} to {displayUpper}{rb}</span>
+  <span class="atom-field">{field}</span>
+  <span class="atom-bounds">{lb}{displayLower} to {displayUpper}{rb}</span>
 </span>
 
 <style>
@@ -58,19 +58,19 @@
     color: var(--blue-5);
   }
 
-  .search-range.chip-required {
+  .search-range.atom-required {
     background-color: var(--green-1);
     border-color: var(--green-2);
     color: var(--green-5);
   }
 
-  .search-range.chip-excluded {
+  .search-range.atom-excluded {
     background-color: var(--red-1);
     border-color: var(--red-2);
     color: var(--red-5);
   }
 
-  .chip-field {
+  .atom-field {
     opacity: 0.75;
     margin: 0 0.125rem 0 0;
     text-transform: uppercase;
@@ -79,20 +79,20 @@
     font-size: var(--font-xs, 12px);
   }
 
-  .chip-prefix {
+  .atom-prefix {
     font-weight: 600;
     margin-right: 1px;
   }
 
-  .chip-prefix-required {
+  .atom-prefix-required {
     color: inherit;
   }
 
-  .chip-prefix-excluded {
+  .atom-prefix-excluded {
     color: inherit;
   }
 
-  .chip-bounds {
+  .atom-bounds {
     font-size: 0.9em;
   }
 </style>

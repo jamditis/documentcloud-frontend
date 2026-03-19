@@ -246,13 +246,13 @@ describe("SearchEditor", () => {
       expect(editor.getAttribute("aria-expanded")).toBe("true");
     });
 
-    it("activates autocomplete after chip with one space", async () => {
+    it("activates autocomplete after atom with one space", async () => {
       const { component } = await renderEditor();
       const view = component.getView();
 
-      // Insert a chip + trailing non-breaking space, matching real browser
+      // Insert an atom + trailing non-breaking space, matching real browser
       // contenteditable behavior where &nbsp; prevents whitespace collapsing.
-      const chipNode = view.state.schema.nodes["field-value"]!.create({
+      const atomNode = view.state.schema.nodes["field-value"]!.create({
         field: "user",
         value: "100",
         prefix: null,
@@ -260,8 +260,8 @@ describe("SearchEditor", () => {
         displayValue: null,
       });
       let tr = view.state.tr;
-      tr.replaceWith(1, 1, chipNode);
-      const afterChip = 1 + chipNode.nodeSize;
+      tr.replaceWith(1, 1, atomNode);
+      const afterChip = 1 + atomNode.nodeSize;
       tr.insertText("\u00A0", afterChip);
       tr.setSelection(TextSelection.create(tr.doc, afterChip + 1));
       view.dispatch(tr);
@@ -353,21 +353,21 @@ describe("SearchEditor", () => {
         );
       });
 
-      // The chip should have displayValue set
+      // The atom should have displayValue set
       const doc = view.state.doc;
-      let chipFound = false;
+      let atomFound = false;
       doc.descendants((node) => {
         if (node.type.name === "field-value" && node.attrs.field === "user") {
           expect(node.attrs.displayValue).toBe("Alice Smith");
-          chipFound = true;
+          atomFound = true;
         }
       });
-      expect(chipFound).toBe(true);
+      expect(atomFound).toBe(true);
     });
   });
 
-  describe("chip enrichment (Phase 6)", () => {
-    it("enriches chips with display names on initial load", async () => {
+  describe("atom enrichment (Phase 6)", () => {
+    it("enriches atoms with display names on initial load", async () => {
       const { component } = await renderEditor({
         initialQuery: "user:102112",
       });
@@ -393,7 +393,7 @@ describe("SearchEditor", () => {
       expect(enriched).toBe(true);
     });
 
-    it("enriches chips after updateQuery()", async () => {
+    it("enriches atoms after updateQuery()", async () => {
       const { component } = await renderEditor();
       const view = component.getView();
 
@@ -488,7 +488,7 @@ describe("SearchEditor", () => {
       );
     });
 
-    it("selecting a shortcut inserts a range chip", async () => {
+    it("selecting a shortcut inserts a range atom", async () => {
       const { component, editor } = await renderEditor();
       const view = component.getView();
 
@@ -506,7 +506,7 @@ describe("SearchEditor", () => {
         );
       });
 
-      // Should have a range chip in the doc
+      // Should have a range atom in the doc
       let rangeFound = false;
       view.state.doc.descendants((node) => {
         if (node.type.name === "range" && node.attrs.field === "created_at") {
@@ -612,7 +612,7 @@ describe("SearchEditor", () => {
         );
       });
 
-      // The range chip should have Solr-compatible dates
+      // The range atom should have Solr-compatible dates
       let rangeFound = false;
       view.state.doc.descendants((node) => {
         if (node.type.name === "range" && node.attrs.field === "created_at") {
@@ -624,7 +624,7 @@ describe("SearchEditor", () => {
       expect(rangeFound).toBe(true);
     });
 
-    it("Enter in date input inserts the range chip", async () => {
+    it("Enter in date input inserts the range atom", async () => {
       const { component, editor } = await renderEditor();
       const view = component.getView();
 
@@ -707,7 +707,7 @@ describe("SearchEditor", () => {
       expect(rangeFound).toBe(true);
     });
 
-    it("range chip inserted by shortcut has null prefix by default", async () => {
+    it("range atom inserted by shortcut has null prefix by default", async () => {
       const { component, editor } = await renderEditor();
       const view = component.getView();
 
@@ -735,7 +735,7 @@ describe("SearchEditor", () => {
       expect(prefixChecked).toBe(true);
     });
 
-    it("fixed date value inserts a field-value chip", async () => {
+    it("fixed date value inserts a field-value atom", async () => {
       const { component, editor } = await renderEditor();
       const view = component.getView();
 
@@ -767,20 +767,20 @@ describe("SearchEditor", () => {
         );
       });
 
-      let chipFound = false;
+      let atomFound = false;
       view.state.doc.descendants((node) => {
         if (
           node.type.name === "field-value" &&
           node.attrs.field === "created_at"
         ) {
           expect(node.attrs.value).toBe("2024-01-15T00:00:00Z");
-          chipFound = true;
+          atomFound = true;
         }
       });
-      expect(chipFound).toBe(true);
+      expect(atomFound).toBe(true);
     });
 
-    it("fixed numeric value inserts a field-value chip for page_count", async () => {
+    it("fixed numeric value inserts a field-value atom for page_count", async () => {
       const { component, editor } = await renderEditor();
       const view = component.getView();
 
@@ -809,20 +809,20 @@ describe("SearchEditor", () => {
         );
       });
 
-      let chipFound = false;
+      let atomFound = false;
       view.state.doc.descendants((node) => {
         if (
           node.type.name === "field-value" &&
           node.attrs.field === "page_count"
         ) {
           expect(node.attrs.value).toBe("50");
-          chipFound = true;
+          atomFound = true;
         }
       });
-      expect(chipFound).toBe(true);
+      expect(atomFound).toBe(true);
     });
 
-    it("Enter in fixed input inserts a field-value chip", async () => {
+    it("Enter in fixed input inserts a field-value atom", async () => {
       const { component, editor } = await renderEditor();
       const view = component.getView();
 
@@ -849,17 +849,17 @@ describe("SearchEditor", () => {
         );
       });
 
-      let chipFound = false;
+      let atomFound = false;
       view.state.doc.descendants((node) => {
         if (
           node.type.name === "field-value" &&
           node.attrs.field === "created_at"
         ) {
           expect(node.attrs.value).toBe("2024-06-01T00:00:00Z");
-          chipFound = true;
+          atomFound = true;
         }
       });
-      expect(chipFound).toBe(true);
+      expect(atomFound).toBe(true);
     });
   });
 
@@ -874,7 +874,7 @@ describe("SearchEditor", () => {
       expect(changeSpy).not.toHaveBeenCalled();
     });
 
-    it("emits change when a range chip is inserted via shortcut", async () => {
+    it("emits change when a range atom is inserted via shortcut", async () => {
       const changeSpy = vi.fn();
       const { component, editor } = await renderEditor({ onchange: changeSpy });
       const view = component.getView();
@@ -901,32 +901,32 @@ describe("SearchEditor", () => {
         );
       });
 
-      // Now change should fire (range chip is structural)
+      // Now change should fire (range atom is structural)
       expect(changeSpy).toHaveBeenCalledTimes(1);
       expect(changeSpy.mock.calls[0]?.[0].q).toContain("created_at:");
     });
   });
 
-  describe("chip editing (subissue 2)", () => {
+  describe("atom editing (subissue 2)", () => {
     /** Find the position of the first node of a given type and select it. */
-    function selectChipNode(
+    function selectAtomNode(
       view: import("prosemirror-view").EditorView,
       typeName: string,
     ) {
-      let chipPos: number | null = null;
+      let atomPos: number | null = null;
       view.state.doc.descendants((node, pos) => {
-        if (chipPos === null && node.type.name === typeName) {
-          chipPos = pos;
+        if (atomPos === null && node.type.name === typeName) {
+          atomPos = pos;
         }
       });
-      if (chipPos === null) throw new Error(`No ${typeName} node found`);
+      if (atomPos === null) throw new Error(`No ${typeName} node found`);
       const tr = view.state.tr.setSelection(
-        NodeSelection.create(view.state.doc, chipPos),
+        NodeSelection.create(view.state.doc, atomPos),
       );
       view.dispatch(tr);
     }
 
-    it("clicking a sort chip toggles its direction", async () => {
+    it("clicking a sort atom toggles its direction", async () => {
       const { editor, component } = await renderEditor({
         initialQuery: "sort:created_at",
       });
@@ -939,7 +939,7 @@ describe("SearchEditor", () => {
       });
       expect(sortNode!.attrs.direction).toBe("asc");
 
-      // Click the sort chip
+      // Click the sort atom
       const sortChip = editor.querySelector(".search-sort") as HTMLElement;
       expect(sortChip).toBeInTheDocument();
       await act(() => {
@@ -959,7 +959,7 @@ describe("SearchEditor", () => {
       expect(component.getQuery()).toBe("sort:-created_at");
     });
 
-    it("clicking a sort chip twice toggles back to asc", async () => {
+    it("clicking a sort atom twice toggles back to asc", async () => {
       const { editor, component } = await renderEditor({
         initialQuery: "sort:-created_at",
       });
@@ -980,87 +980,87 @@ describe("SearchEditor", () => {
       expect(component.getQuery()).toBe("sort:created_at");
     });
 
-    it("selecting a field-value chip opens the chip editor popover", async () => {
+    it("selecting a field-value atom opens the atom editor popover", async () => {
       const { component } = await renderEditor({
         initialQuery: "access:public",
       });
       const view = component.getView();
 
-      await act(() => selectChipNode(view, "field-value"));
+      await act(() => selectAtomNode(view, "field-value"));
 
-      const popover = document.querySelector(".chip-editor");
+      const popover = document.querySelector(".atom-editor");
       expect(popover).not.toBeNull();
       expect(popover!.getAttribute("role")).toBe("dialog");
     });
 
-    it("selecting a range chip opens the chip editor popover", async () => {
+    it("selecting a range atom opens the atom editor popover", async () => {
       const { component } = await renderEditor({
         initialQuery: "created_at:[NOW-1MONTH TO *]",
       });
       const view = component.getView();
 
-      await act(() => selectChipNode(view, "range"));
+      await act(() => selectAtomNode(view, "range"));
 
-      const popover = document.querySelector(".chip-editor");
+      const popover = document.querySelector(".atom-editor");
       expect(popover).not.toBeNull();
     });
 
-    it("deselecting a chip closes the popover", async () => {
+    it("deselecting an atom closes the popover", async () => {
       const { component } = await renderEditor({
         initialQuery: "access:public report",
       });
       const view = component.getView();
 
-      // Select chip → popover opens
-      await act(() => selectChipNode(view, "field-value"));
-      expect(document.querySelector(".chip-editor")).not.toBeNull();
+      // Select atom → popover opens
+      await act(() => selectAtomNode(view, "field-value"));
+      expect(document.querySelector(".atom-editor")).not.toBeNull();
 
-      // Move cursor to text → chip deselected → popover closes
+      // Move cursor to text → atom deselected → popover closes
       await act(() => {
         const tr = view.state.tr.setSelection(
           TextSelection.create(view.state.doc, view.state.doc.content.size - 1),
         );
         view.dispatch(tr);
       });
-      expect(document.querySelector(".chip-editor")).toBeNull();
+      expect(document.querySelector(".atom-editor")).toBeNull();
     });
 
-    it("toggling Require in the popover updates the chip prefix", async () => {
+    it("toggling Require in the popover updates the atom prefix", async () => {
       const { component } = await renderEditor({
         initialQuery: "access:public",
       });
       const view = component.getView();
 
-      await act(() => selectChipNode(view, "field-value"));
+      await act(() => selectAtomNode(view, "field-value"));
 
       // Click Require toggle
       const requiredBtn = document.querySelector(
-        ".chip-editor button[title='Require']",
+        ".atom-editor button[title='Require']",
       ) as HTMLElement;
       expect(requiredBtn).not.toBeNull();
       await act(() => {
         requiredBtn.click();
       });
 
-      // Chip should now have prefix "+"
-      let chipNode: import("prosemirror-model").Node | null = null;
+      // Atom should now have prefix "+"
+      let atomNode: import("prosemirror-model").Node | null = null;
       view.state.doc.descendants((node) => {
-        if (node.type.name === "field-value") chipNode = node;
+        if (node.type.name === "field-value") atomNode = node;
       });
-      expect(chipNode!.attrs.prefix).toBe("+");
+      expect(atomNode!.attrs.prefix).toBe("+");
       expect(component.getQuery()).toBe("+access:public");
     });
 
-    it("toggling Exclude in the popover updates the chip prefix", async () => {
+    it("toggling Exclude in the popover updates the atom prefix", async () => {
       const { component } = await renderEditor({
         initialQuery: "access:public",
       });
       const view = component.getView();
 
-      await act(() => selectChipNode(view, "field-value"));
+      await act(() => selectAtomNode(view, "field-value"));
 
       const excludedBtn = document.querySelector(
-        ".chip-editor button[title='Exclude']",
+        ".atom-editor button[title='Exclude']",
       ) as HTMLElement;
       await act(() => {
         excludedBtn.click();
@@ -1075,10 +1075,10 @@ describe("SearchEditor", () => {
       });
       const view = component.getView();
 
-      await act(() => selectChipNode(view, "field-value"));
+      await act(() => selectAtomNode(view, "field-value"));
 
       const requiredBtn = document.querySelector(
-        ".chip-editor button[title='Require']",
+        ".atom-editor button[title='Require']",
       ) as HTMLElement;
       await act(() => {
         requiredBtn.click();
@@ -1087,55 +1087,55 @@ describe("SearchEditor", () => {
       expect(component.getQuery()).toBe("access:public");
     });
 
-    it("deleting a chip via the popover removes it from the document", async () => {
+    it("deleting an atom via the popover removes it from the document", async () => {
       const { editor, component } = await renderEditor({
         initialQuery: "access:public report",
       });
       const view = component.getView();
 
-      await act(() => selectChipNode(view, "field-value"));
+      await act(() => selectAtomNode(view, "field-value"));
 
       // The delete button is a <Button> component rendered inside the popover
-      const popover = document.querySelector(".chip-editor") as HTMLElement;
+      const popover = document.querySelector(".atom-editor") as HTMLElement;
       const deleteBtn = popover?.querySelector("button.danger") as HTMLElement;
       expect(deleteBtn).not.toBeNull();
       await act(() => {
         deleteBtn.click();
       });
 
-      // Chip should be gone, popover should be closed
-      expect(document.querySelector(".chip-editor")).toBeNull();
+      // Atom should be gone, popover should be closed
+      expect(document.querySelector(".atom-editor")).toBeNull();
       expect(editor.querySelectorAll(".search-field-value").length).toBe(0);
       expect(component.getQuery()).toContain("report");
     });
 
-    it("Escape closes the chip editor popover", async () => {
+    it("Escape closes the atom editor popover", async () => {
       const { component } = await renderEditor({
         initialQuery: "access:public",
       });
       const view = component.getView();
 
-      await act(() => selectChipNode(view, "field-value"));
-      expect(document.querySelector(".chip-editor")).not.toBeNull();
+      await act(() => selectAtomNode(view, "field-value"));
+      expect(document.querySelector(".atom-editor")).not.toBeNull();
 
       // Press Escape on the popover
-      const popover = document.querySelector(".chip-editor") as HTMLElement;
+      const popover = document.querySelector(".atom-editor") as HTMLElement;
       await act(() => {
         popover.dispatchEvent(
           new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
         );
       });
 
-      expect(document.querySelector(".chip-editor")).toBeNull();
+      expect(document.querySelector(".atom-editor")).toBeNull();
     });
 
-    it("boost stepper increments and decrements on field-value chips", async () => {
+    it("boost stepper increments and decrements on field-value atoms", async () => {
       const { component } = await renderEditor({
         initialQuery: "access:public",
       });
       const view = component.getView();
 
-      await act(() => selectChipNode(view, "field-value"));
+      await act(() => selectAtomNode(view, "field-value"));
 
       // Increment boost
       let incrementBtn = document.querySelector(
@@ -1145,11 +1145,11 @@ describe("SearchEditor", () => {
         incrementBtn.click();
       });
 
-      let chipNode: import("prosemirror-model").Node | null = null;
+      let atomNode: import("prosemirror-model").Node | null = null;
       view.state.doc.descendants((node) => {
-        if (node.type.name === "field-value") chipNode = node;
+        if (node.type.name === "field-value") atomNode = node;
       });
-      expect(chipNode!.attrs.boost).toBe(2);
+      expect(atomNode!.attrs.boost).toBe(2);
 
       // Increment again (re-query in case popover was recreated)
       incrementBtn = document.querySelector(
@@ -1159,11 +1159,11 @@ describe("SearchEditor", () => {
         incrementBtn.click();
       });
 
-      chipNode = null;
+      atomNode = null;
       view.state.doc.descendants((node) => {
-        if (node.type.name === "field-value") chipNode = node;
+        if (node.type.name === "field-value") atomNode = node;
       });
-      expect(chipNode!.attrs.boost).toBe(3);
+      expect(atomNode!.attrs.boost).toBe(3);
 
       // Decrement (re-query)
       const decrementBtn = document.querySelector(
@@ -1173,20 +1173,20 @@ describe("SearchEditor", () => {
         decrementBtn.click();
       });
 
-      chipNode = null;
+      atomNode = null;
       view.state.doc.descendants((node) => {
-        if (node.type.name === "field-value") chipNode = node;
+        if (node.type.name === "field-value") atomNode = node;
       });
-      expect(chipNode!.attrs.boost).toBe(2);
+      expect(atomNode!.attrs.boost).toBe(2);
     });
 
-    it("range chip editor does not show boost controls", async () => {
+    it("range atom editor does not show boost controls", async () => {
       const { component } = await renderEditor({
         initialQuery: "created_at:[NOW-1MONTH TO *]",
       });
       const view = component.getView();
 
-      await act(() => selectChipNode(view, "range"));
+      await act(() => selectAtomNode(view, "range"));
 
       // Should not have boost controls
       expect(
@@ -1199,18 +1199,18 @@ describe("SearchEditor", () => {
   });
 
   describe("deserialization on load (Phase 4)", () => {
-    it("deserializes initialQuery with field-value into chips", async () => {
+    it("deserializes initialQuery with field-value into atoms", async () => {
       const { editor, component } = await renderEditor({
         initialQuery: "user:102112 AND access:private",
       });
-      // Should have chips rendered
-      const chips = editor.querySelectorAll(".search-field-value");
-      expect(chips.length).toBe(2);
+      // Should have atoms rendered
+      const atoms = editor.querySelectorAll(".search-field-value");
+      expect(atoms.length).toBe(2);
       // Serialization should round-trip
       expect(component.getQuery()).toBe("user:102112 AND access:private");
     });
 
-    it("deserializes initialQuery with sort into chip", async () => {
+    it("deserializes initialQuery with sort into atom", async () => {
       const { editor, component } = await renderEditor({
         initialQuery: "sort:-created_at",
       });
@@ -1219,7 +1219,7 @@ describe("SearchEditor", () => {
       expect(component.getQuery()).toBe("sort:-created_at");
     });
 
-    it("deserializes initialQuery with range into chip", async () => {
+    it("deserializes initialQuery with range into atom", async () => {
       const { editor, component } = await renderEditor({
         initialQuery: "created_at:[NOW-1MONTH TO *]",
       });
@@ -1228,7 +1228,7 @@ describe("SearchEditor", () => {
       expect(component.getQuery()).toBe("created_at:[NOW-1MONTH TO *]");
     });
 
-    it("deserializes complex mixed query with chips and text", async () => {
+    it("deserializes complex mixed query with atoms and text", async () => {
       const { editor, component } = await renderEditor({
         initialQuery:
           "+user:102112 created_at:[NOW-1MONTH TO *] AND access:private sort:-page_count",
@@ -1242,9 +1242,9 @@ describe("SearchEditor", () => {
       const { editor, component } = await renderEditor({
         initialQuery: "title:Mueller*",
       });
-      // Should not create a chip for title
-      const chips = editor.querySelectorAll(".search-field-value");
-      expect(chips.length).toBe(0);
+      // Should not create an atom for title
+      const atoms = editor.querySelectorAll(".search-field-value");
+      expect(atoms.length).toBe(0);
       expect(component.getQuery()).toBe("title:Mueller*");
     });
 
@@ -1259,7 +1259,7 @@ describe("SearchEditor", () => {
   });
 
   describe("autocomplete insertion flow", () => {
-    it("full flow: type field prefix → select field → select value → chip inserted", async () => {
+    it("full flow: type field prefix → select field → select value → atom inserted", async () => {
       const { component, editor } = await renderEditor();
       const view = component.getView();
 
@@ -1289,18 +1289,18 @@ describe("SearchEditor", () => {
         );
       });
 
-      // Chip should be inserted
-      let chipFound = false;
+      // Atom should be inserted
+      let atomFound = false;
       view.state.doc.descendants((node) => {
         if (node.type.name === "field-value" && node.attrs.field === "access") {
           expect(node.attrs.value).toBe("public");
-          chipFound = true;
+          atomFound = true;
         }
       });
-      expect(chipFound).toBe(true);
+      expect(atomFound).toBe(true);
     });
 
-    it("full flow: sort field → select sort option → sort chip inserted", async () => {
+    it("full flow: sort field → select sort option → sort atom inserted", async () => {
       const { component, editor } = await renderEditor();
       const view = component.getView();
 
@@ -1395,14 +1395,14 @@ describe("SearchEditor", () => {
         );
       });
 
-      // Should have inserted a chip
-      let chipFound = false;
+      // Should have inserted an atom
+      let atomFound = false;
       view.state.doc.descendants((node) => {
         if (node.type.name === "field-value" && node.attrs.field === "access") {
-          chipFound = true;
+          atomFound = true;
         }
       });
-      expect(chipFound).toBe(true);
+      expect(atomFound).toBe(true);
     });
 
     it("Escape dismisses dropdown and sets aria-expanded to false", async () => {
@@ -1491,25 +1491,25 @@ describe("SearchEditor", () => {
     });
   });
 
-  describe("chip keyboard interaction", () => {
-    it("Backspace deletes a selected chip", async () => {
+  describe("atom keyboard interaction", () => {
+    it("Backspace deletes a selected atom", async () => {
       const { component, editor } = await renderEditor({
         initialQuery: "access:public report",
       });
       const view = component.getView();
 
-      // Select the chip via NodeSelection
-      let chipPos: number | null = null;
+      // Select the atom via NodeSelection
+      let atomPos: number | null = null;
       view.state.doc.descendants((node, pos) => {
-        if (chipPos === null && node.type.name === "field-value") {
-          chipPos = pos;
+        if (atomPos === null && node.type.name === "field-value") {
+          atomPos = pos;
         }
       });
-      expect(chipPos).not.toBeNull();
+      expect(atomPos).not.toBeNull();
 
       await act(() => {
         const tr = view.state.tr.setSelection(
-          NodeSelection.create(view.state.doc, chipPos!),
+          NodeSelection.create(view.state.doc, atomPos!),
         );
         view.dispatch(tr);
       });
@@ -1524,31 +1524,31 @@ describe("SearchEditor", () => {
         );
       });
 
-      // Chip should be gone
-      let chipFound = false;
+      // Atom should be gone
+      let atomFound = false;
       view.state.doc.descendants((node) => {
-        if (node.type.name === "field-value") chipFound = true;
+        if (node.type.name === "field-value") atomFound = true;
       });
-      expect(chipFound).toBe(false);
+      expect(atomFound).toBe(false);
       expect(component.getQuery()).toContain("report");
     });
 
-    it("Delete key deletes a selected chip", async () => {
+    it("Delete key deletes a selected atom", async () => {
       const { component, editor } = await renderEditor({
         initialQuery: "access:public report",
       });
       const view = component.getView();
 
-      let chipPos: number | null = null;
+      let atomPos: number | null = null;
       view.state.doc.descendants((node, pos) => {
-        if (chipPos === null && node.type.name === "field-value") {
-          chipPos = pos;
+        if (atomPos === null && node.type.name === "field-value") {
+          atomPos = pos;
         }
       });
 
       await act(() => {
         const tr = view.state.tr.setSelection(
-          NodeSelection.create(view.state.doc, chipPos!),
+          NodeSelection.create(view.state.doc, atomPos!),
         );
         view.dispatch(tr);
       });
@@ -1559,11 +1559,11 @@ describe("SearchEditor", () => {
         );
       });
 
-      let chipFound = false;
+      let atomFound = false;
       view.state.doc.descendants((node) => {
-        if (node.type.name === "field-value") chipFound = true;
+        if (node.type.name === "field-value") atomFound = true;
       });
-      expect(chipFound).toBe(false);
+      expect(atomFound).toBe(false);
     });
   });
 

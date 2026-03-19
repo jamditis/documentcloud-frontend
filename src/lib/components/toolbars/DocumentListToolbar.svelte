@@ -29,12 +29,12 @@
 
   let headerToolbarWidth: number = $state(800);
 
-  let contextChips = $derived(
+  let contextAtoms = $derived(
     project ? [{ field: "project", label: project.title }] : [],
   );
 
   function handleSearchChange(detail: { q: string; structural: boolean }) {
-    // Only reload for structural changes (chip insert/remove).
+    // Only reload for structural changes (atom insert/remove).
     // Plain text typing waits for explicit Enter/submit.
     if (detail.structural) {
       handleSearchSubmit(detail);
@@ -53,7 +53,7 @@
     <div class="items">
       <SearchEditor
         initialQuery={query}
-        {contextChips}
+        {contextAtoms}
         {preloadedSuggestions}
         onchange={handleSearchChange}
         onsubmit={handleSearchSubmit}

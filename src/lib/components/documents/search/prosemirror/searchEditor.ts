@@ -2,7 +2,7 @@
  * Framework-agnostic ProseMirror search editor logic.
  *
  * This module encapsulates the editor state creation, plugin wiring,
- * chip enrichment, and document update helpers so the Svelte component
+ * atom enrichment, and document update helpers so the Svelte component
  * only needs to handle lifecycle and event dispatching.
  */
 
@@ -47,15 +47,15 @@ function placeholderPlugin(): Plugin {
   });
 }
 
-const CHIP_TYPES = new Set(["field-value", "range", "sort"]);
+const ATOM_TYPES = new Set(["field-value", "range", "sort"]);
 
-/** Collect a fingerprint of all chip nodes in a document.
+/** Collect a fingerprint of all atom nodes in a document.
  *  Only includes attributes that affect the serialized query —
  *  cosmetic attrs like displayValue are excluded. */
 export function getFingerprint(doc: Node): string {
   const parts: string[] = [];
   doc.descendants((node) => {
-    if (CHIP_TYPES.has(node.type.name)) {
+    if (ATOM_TYPES.has(node.type.name)) {
       // Exclude displayValue — it's cosmetic and doesn't affect the query
       const { displayValue, ...queryAttrs } = node.attrs;
       parts.push(`${node.type.name}:${JSON.stringify(queryAttrs)}`);
@@ -65,7 +65,7 @@ export function getFingerprint(doc: Node): string {
 }
 
 /**
- * Collect a map of "field:value" → displayValue from existing chips
+ * Collect a map of "field:value" → displayValue from existing atoms
  * so we can carry forward resolved names when rebuilding the doc.
  */
 export function collectDisplayValues(doc: Node): Map<string, string> {
@@ -86,7 +86,7 @@ export function collectDisplayValues(doc: Node): Map<string, string> {
 }
 
 /**
- * Apply carried-forward display values to a new doc's chips.
+ * Apply carried-forward display values to a new doc's atoms.
  * Returns a transaction if any updates were made, or null.
  */
 export function applyCarriedDisplayValues(
@@ -117,12 +117,12 @@ export function applyCarriedDisplayValues(
 }
 
 /**
- * Walk the doc for entity field-value chips lacking displayValue,
- * fetch display names from the API, then update the chips in-place.
+ * Walk the doc for entity field-value atoms lacking displayValue,
+ * fetch display names from the API, then update the atoms in-place.
  */
-export async function enrichChips(v: EditorView): Promise<void> {
+export async function enrichAtoms(v: EditorView): Promise<void> {
   try {
-    // Collect chips that need enrichment
+    // Collect atoms that need enrichment
     const toEnrich: Array<{ field: string; value: string }> = [];
     v.state.doc.descendants((node) => {
       if (
@@ -169,7 +169,7 @@ export async function enrichChips(v: EditorView): Promise<void> {
 export interface SearchEditorOptions {
   initialQuery: string;
   getPreloadedSuggestions: () => Record<string, Suggestion[]>;
-  /** Called when the document changes. `structural` is true when chips were added/removed. */
+  /** Called when the document changes. `structural` is true when atoms were added/removed. */
   onDocChange: (query: string, structural: boolean, valid: boolean) => void;
 }
 
@@ -225,7 +225,7 @@ export function createSearchEditor(
     },
   });
 
-  enrichChips(view);
+  enrichAtoms(view);
   return view;
 }
 
@@ -237,7 +237,7 @@ export function updateEditorQuery(view: EditorView, query: string): void {
   const current = serialize(view.state.doc);
   if (current === query) return;
 
-  // Carry forward display values from chips that still exist in the new query
+  // Carry forward display values from atoms that still exist in the new query
   const carried = collectDisplayValues(view.state.doc);
 
   const doc = deserialize(query);
@@ -248,14 +248,14 @@ export function updateEditorQuery(view: EditorView, query: string): void {
   );
   view.dispatch(tr);
 
-  // Restore display values for chips that survived the update
+  // Restore display values for atoms that survived the update
   const carryTr = applyCarriedDisplayValues(view.state, carried);
   if (carryTr) {
     view.dispatch(carryTr);
   }
 
-  // Enrich any remaining chips that still need display names
-  enrichChips(view);
+  // Enrich any remaining atoms that still need display names
+  enrichAtoms(view);
 }
 
 /** Get the current serialized query from the editor. */

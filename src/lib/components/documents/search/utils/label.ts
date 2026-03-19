@@ -41,10 +41,10 @@ export function sortLabel(attrs: Record<string, any>): string {
 }
 
 /**
- * Compute a chip label from a node type name and its attributes.
+ * Compute an atom label from a node type name and its attributes.
  * Convenient for ProseMirror NodeView code that has both values at hand.
  */
-export function chipLabel(type: string, attrs: Record<string, any>): string {
+export function atomLabel(type: string, attrs: Record<string, any>): string {
   switch (type) {
     case "field-value":
       return fieldValueLabel(attrs);

@@ -8,7 +8,7 @@ import { atomNavigationKeymap } from "../atom-navigation-plugin";
 
 const { nodes } = searchSchema;
 
-function makeChip(type: "field-value" | "range" | "sort") {
+function makeAtom(type: "field-value" | "range" | "sort") {
   switch (type) {
     case "field-value":
       return nodes["field-value"].create({
@@ -29,11 +29,11 @@ function makeChip(type: "field-value" | "range" | "sort") {
   }
 }
 
-/** Build: <doc><p>a {chip} b</p></doc> */
-function docWithChip(type: "field-value" | "range" | "sort" = "field-value") {
+/** Build: <doc><p>a {atom} b</p></doc> */
+function docWithAtom(type: "field-value" | "range" | "sort" = "field-value") {
   const para = nodes["paragraph"].create(null, [
     searchSchema.text("a "),
-    makeChip(type),
+    makeAtom(type),
     searchSchema.text(" b"),
   ]);
   return nodes["doc"].create(null, para);
@@ -48,7 +48,7 @@ function createView(doc: ReturnType<typeof nodes.doc.create>) {
   return new EditorView(div, { state });
 }
 
-function findChipPos(
+function findAtomPos(
   doc: ReturnType<typeof nodes.doc.create>,
   typeName: string,
 ): number {
@@ -66,16 +66,16 @@ function pressKey(view: EditorView, key: string) {
 
 describe("atom-navigation-plugin", () => {
   describe("ArrowLeft into atom", () => {
-    it("selects a field-value chip when cursor is immediately after it", () => {
-      const doc = docWithChip("field-value");
+    it("selects a field-value atom when cursor is immediately after it", () => {
+      const doc = docWithAtom("field-value");
       const view = createView(doc);
-      const chipPos = findChipPos(doc, "field-value");
+      const atomPos = findAtomPos(doc, "field-value");
 
-      // Place cursor right after the chip
-      const afterChip = chipPos + 1;
+      // Place cursor right after the atom
+      const afterAtom = atomPos + 1;
       view.dispatch(
         view.state.tr.setSelection(
-          TextSelection.create(view.state.doc, afterChip),
+          TextSelection.create(view.state.doc, afterAtom),
         ),
       );
 
@@ -88,14 +88,14 @@ describe("atom-navigation-plugin", () => {
       view.destroy();
     });
 
-    it("selects a range chip when cursor is immediately after it", () => {
-      const doc = docWithChip("range");
+    it("selects a range atom when cursor is immediately after it", () => {
+      const doc = docWithAtom("range");
       const view = createView(doc);
-      const chipPos = findChipPos(doc, "range");
+      const atomPos = findAtomPos(doc, "range");
 
       view.dispatch(
         view.state.tr.setSelection(
-          TextSelection.create(view.state.doc, chipPos + 1),
+          TextSelection.create(view.state.doc, atomPos + 1),
         ),
       );
 
@@ -109,7 +109,7 @@ describe("atom-navigation-plugin", () => {
     });
 
     it("does not select when cursor is not adjacent to an atom", () => {
-      const doc = docWithChip("field-value");
+      const doc = docWithAtom("field-value");
       const view = createView(doc);
 
       // Cursor at start of paragraph (pos=1), before "a "
@@ -126,15 +126,15 @@ describe("atom-navigation-plugin", () => {
   });
 
   describe("ArrowRight into atom", () => {
-    it("selects a field-value chip when cursor is immediately before it", () => {
-      const doc = docWithChip("field-value");
+    it("selects a field-value atom when cursor is immediately before it", () => {
+      const doc = docWithAtom("field-value");
       const view = createView(doc);
-      const chipPos = findChipPos(doc, "field-value");
+      const atomPos = findAtomPos(doc, "field-value");
 
-      // Place cursor right before the chip
+      // Place cursor right before the atom
       view.dispatch(
         view.state.tr.setSelection(
-          TextSelection.create(view.state.doc, chipPos),
+          TextSelection.create(view.state.doc, atomPos),
         ),
       );
 
@@ -147,14 +147,14 @@ describe("atom-navigation-plugin", () => {
       view.destroy();
     });
 
-    it("selects a sort chip when cursor is immediately before it", () => {
-      const doc = docWithChip("sort");
+    it("selects a sort atom when cursor is immediately before it", () => {
+      const doc = docWithAtom("sort");
       const view = createView(doc);
-      const chipPos = findChipPos(doc, "sort");
+      const atomPos = findAtomPos(doc, "sort");
 
       view.dispatch(
         view.state.tr.setSelection(
-          TextSelection.create(view.state.doc, chipPos),
+          TextSelection.create(view.state.doc, atomPos),
         ),
       );
 
@@ -168,7 +168,7 @@ describe("atom-navigation-plugin", () => {
     });
 
     it("does not select when cursor is not adjacent to an atom", () => {
-      const doc = docWithChip("field-value");
+      const doc = docWithAtom("field-value");
       const view = createView(doc);
 
       // Cursor at end of paragraph, after " b"
@@ -187,22 +187,22 @@ describe("atom-navigation-plugin", () => {
   });
 
   describe("ArrowDown into popover", () => {
-    it("does not activate for sort chips", () => {
-      const doc = docWithChip("sort");
+    it("does not activate for sort atoms", () => {
+      const doc = docWithAtom("sort");
       const view = createView(doc);
-      const chipPos = findChipPos(doc, "sort");
+      const atomPos = findAtomPos(doc, "sort");
 
-      // Select the sort chip
+      // Select the sort atom
       view.dispatch(
         view.state.tr.setSelection(
-          NodeSelection.create(view.state.doc, chipPos),
+          NodeSelection.create(view.state.doc, atomPos),
         ),
       );
 
       pressKey(view, "ArrowDown");
 
-      // Sort chips are excluded from popover navigation, so
-      // selection should remain on the sort chip (no-op)
+      // Sort atoms are excluded from popover navigation, so
+      // selection should remain on the sort atom (no-op)
       expect(view.state.selection).toBeInstanceOf(NodeSelection);
       expect((view.state.selection as NodeSelection).node.type.name).toBe(
         "sort",
@@ -211,7 +211,7 @@ describe("atom-navigation-plugin", () => {
     });
 
     it("does not activate when selection is text", () => {
-      const doc = docWithChip("field-value");
+      const doc = docWithAtom("field-value");
       const view = createView(doc);
 
       view.dispatch(
