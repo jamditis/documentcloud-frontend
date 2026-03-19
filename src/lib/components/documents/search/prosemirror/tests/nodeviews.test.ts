@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { render, act } from "@testing-library/svelte";
 import { NodeSelection, TextSelection } from "prosemirror-state";
-import SearchEditor from "../SearchEditor.svelte";
-import { searchSchema } from "../prosemirror/schema";
+import SearchEditor from "../../SearchEditor.svelte";
+import { searchSchema } from "../schema";
 
 /** Render the editor and wait for ProseMirror to initialize */
 async function renderEditor(props: Record<string, unknown> = {}) {

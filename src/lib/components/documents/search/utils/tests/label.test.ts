@@ -16,14 +16,14 @@ describe("displayBound", () => {
 
   test("formats ISO dates as locale strings", () => {
     const result = displayBound("2024-01-15");
-    // Exact format depends on locale, but it should not be the raw ISO string
-    expect(result).not.toBe("2024-01-15");
-    expect(result).toBeTruthy();
+    const localeString = new Date("2024-01-15").toLocaleDateString();
+    expect(result).toEqual(localeString);
   });
 
   test("formats ISO datetime as locale string", () => {
     const result = displayBound("2024-01-15T00:00:00Z");
-    expect(result).not.toBe("2024-01-15T00:00:00Z");
+    const localeString = new Date("2024-01-15T00:00:00Z").toLocaleDateString()
+    expect(result).toEqual(localeString);
   });
 
   test("does not treat bare numbers as dates", () => {
