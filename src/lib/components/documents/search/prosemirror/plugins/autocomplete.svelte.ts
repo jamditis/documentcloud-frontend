@@ -170,9 +170,13 @@ export function computeAutocompleteState(
 // ── Insertion helpers ──────────────────────────────────────────
 
 /** Extract a leading +/- prefix from the text in a doc range, or null. */
-function extractPrefix(doc: import("prosemirror-model").Node, from: number, to: number): string | null {
+function extractPrefix(
+  doc: import("prosemirror-model").Node,
+  from: number,
+  to: number,
+): string | null {
   const text = doc.textBetween(from, to);
-  return (text.startsWith("+") || text.startsWith("-")) ? text.charAt(0) : null;
+  return text.startsWith("+") || text.startsWith("-") ? text.charAt(0) : null;
 }
 
 // ── Insertion logic ────────────────────────────────────────────
@@ -500,7 +504,11 @@ export function populateInterimSuggestions(
   lastAsyncResults: { field: string; suggestions: Suggestion[] } | null,
   preloaded: Record<string, Suggestion[]> | undefined,
 ): boolean {
-  if (computed.stage !== "value" || !computed.fieldName || computed.suggestions.length > 0)
+  if (
+    computed.stage !== "value" ||
+    !computed.fieldName ||
+    computed.suggestions.length > 0
+  )
     return true;
   const cachedValues =
     lastAsyncResults?.field === computed.fieldName
@@ -670,8 +678,12 @@ export function autocompletePlugin(
     view(editorView) {
       const vc = new AutocompleteViewController(editorView, options);
       return {
-        update(view) { vc.update(view); },
-        destroy() { vc.destroy(); },
+        update(view) {
+          vc.update(view);
+        },
+        destroy() {
+          vc.destroy();
+        },
       };
     },
   });

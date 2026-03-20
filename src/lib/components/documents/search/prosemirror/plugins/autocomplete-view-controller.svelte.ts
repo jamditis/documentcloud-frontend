@@ -286,10 +286,7 @@ export class AutocompleteViewController {
     }
   }
 
-  private showDropdown(
-    pluginState: AutocompleteState,
-    view: EditorView,
-  ): void {
+  private showDropdown(pluginState: AutocompleteState, view: EditorView): void {
     if (this.rangeComponent) {
       this.rangeComponent.getElement()?.style.setProperty("display", "none");
     }
@@ -395,9 +392,7 @@ export class AutocompleteViewController {
           this.clearActiveDescendant();
           return;
         }
-        view.dispatch(
-          view.state.tr.setMeta(autocompletePluginKey, computed),
-        );
+        view.dispatch(view.state.tr.setMeta(autocompletePluginKey, computed));
         return;
       }
 

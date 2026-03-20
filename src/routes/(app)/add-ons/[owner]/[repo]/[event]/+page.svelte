@@ -71,12 +71,5 @@
 </svelte:head>
 
 {#if addon}
-  <AddOnLayout
-    {addon}
-    {event}
-    {query}
-    {disablePremium}
-    {scheduled}
-    {history}
-  />
+  <AddOnLayout {addon} {event} {query} {disablePremium} {scheduled} {history} />
 {/if}

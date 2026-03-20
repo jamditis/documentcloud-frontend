@@ -22,7 +22,7 @@ describe("displayBound", () => {
 
   test("formats ISO datetime as locale string", () => {
     const result = displayBound("2024-01-15T00:00:00Z");
-    const localeString = new Date("2024-01-15T00:00:00Z").toLocaleDateString()
+    const localeString = new Date("2024-01-15T00:00:00Z").toLocaleDateString();
     expect(result).toEqual(localeString);
   });
 

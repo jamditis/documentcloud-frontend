@@ -471,7 +471,12 @@ export function detectTrigger(
     const rawField = quotedMatch[1]!.replace(/^[+-]/, "");
     const valueFilter = quotedMatch[2]!;
     const triggerStart = quotedMatch.index!;
-    const result = resolveValueTrigger(rawField, valueFilter, triggerStart, preloadedFields);
+    const result = resolveValueTrigger(
+      rawField,
+      valueFilter,
+      triggerStart,
+      preloadedFields,
+    );
     if (result) return result;
     return { stage: null };
   }
@@ -490,7 +495,12 @@ export function detectTrigger(
     // Strip leading +/- prefix
     const fieldName = rawField.replace(/^[+-]/, "");
     const valueText = word.substring(colonIndex + 1);
-    const result = resolveValueTrigger(fieldName, valueText, triggerStart, preloadedFields);
+    const result = resolveValueTrigger(
+      fieldName,
+      valueText,
+      triggerStart,
+      preloadedFields,
+    );
     if (result) return result;
 
     // Field exists but no suggestions → no autocomplete
