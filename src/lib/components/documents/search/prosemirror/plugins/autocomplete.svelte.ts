@@ -1,6 +1,5 @@
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
-import { computePosition, flip, offset, shift } from "@floating-ui/dom";
 import {
   getAllFieldSuggestions,
   getFieldSuggestions,
@@ -8,20 +7,17 @@ import {
   detectTrigger,
   resolveField,
   isAsyncField,
-  fetchValueSuggestions,
   getRangeConfig,
   type Suggestion,
 } from "./autocomplete-data";
 import { searchSchema } from "../schema";
-import AutocompleteDropdown from "../../AutocompleteDropdown.svelte";
-import RangeBuilder from "../../RangeBuilder.svelte";
-import { flushSync, mount, unmount } from "svelte";
+import { AutocompleteViewController } from "./autocomplete-view-controller.svelte";
 
 export const autocompletePluginKey = new PluginKey("autocomplete");
 
 // ── State ──────────────────────────────────────────────────────
 
-interface AutocompleteState {
+export interface AutocompleteState {
   active: boolean;
   /** Explicitly dismissed (Escape / click-away). Prevents re-activation
    *  until the next doc change resets the flag. */
@@ -41,7 +37,7 @@ interface AutocompleteState {
   selectedIndex: number;
 }
 
-const INACTIVE: AutocompleteState = {
+export const INACTIVE: AutocompleteState = {
   active: false,
   dismissed: false,
   loading: false,
@@ -54,7 +50,7 @@ const INACTIVE: AutocompleteState = {
   selectedIndex: 0,
 };
 
-const DISMISSED: AutocompleteState = {
+export const DISMISSED: AutocompleteState = {
   ...INACTIVE,
   dismissed: true,
 };
@@ -65,7 +61,7 @@ const DISMISSED: AutocompleteState = {
  * Examine the text before the cursor and determine if autocomplete should
  * be active. Returns a new AutocompleteState or null if inactive.
  */
-function computeAutocompleteState(
+export function computeAutocompleteState(
   view: EditorView,
   preloadedFields?: Set<string>,
 ): AutocompleteState | null {
@@ -169,6 +165,14 @@ function computeAutocompleteState(
   }
 
   return null;
+}
+
+// ── Insertion helpers ──────────────────────────────────────────
+
+/** Extract a leading +/- prefix from the text in a doc range, or null. */
+function extractPrefix(doc: import("prosemirror-model").Node, from: number, to: number): string | null {
+  const text = doc.textBetween(from, to);
+  return (text.startsWith("+") || text.startsWith("-")) ? text.charAt(0) : null;
 }
 
 // ── Insertion logic ────────────────────────────────────────────
@@ -324,12 +328,7 @@ function applyValueSuggestion(view: EditorView, suggestion: Suggestion): void {
     tr.insertText("\u00A0", afterAtom);
     tr.setSelection(TextSelection.create(tr.doc, afterAtom + 1));
   } else if (fieldDef.insertBehavior === "field-value-atom") {
-    // Extract prefix from the original text if present
-    const originalText = view.state.doc.textBetween(state.from, replaceTo);
-    let prefix: string | null = null;
-    if (originalText.startsWith("+") || originalText.startsWith("-")) {
-      prefix = originalText.charAt(0);
-    }
+    const prefix = extractPrefix(view.state.doc, state.from, replaceTo);
 
     const atomNode = searchSchema.nodes["field-value"].create({
       field: state.fieldName,
@@ -368,13 +367,7 @@ function applyRangeShortcut(view: EditorView, suggestion: Suggestion): void {
   if (!shortcut) return;
 
   const tr = view.state.tr;
-
-  // Extract prefix from the original text if present
-  const originalText = view.state.doc.textBetween(state.from, state.to);
-  let prefix: string | null = null;
-  if (originalText.startsWith("+") || originalText.startsWith("-")) {
-    prefix = originalText.charAt(0);
-  }
+  const prefix = extractPrefix(view.state.doc, state.from, state.to);
 
   const rangeNode = searchSchema.nodes.range.create({
     field: state.fieldName,
@@ -408,7 +401,7 @@ function formatDateBound(value: string, position: "lower" | "upper"): string {
   return value;
 }
 
-function applyCustomRange(
+export function applyCustomRange(
   view: EditorView,
   lower: string,
   upper: string,
@@ -427,13 +420,7 @@ function applyCustomRange(
   const finalUpper = isDateField ? formatDateBound(upper, "upper") : upper;
 
   const tr = view.state.tr;
-
-  // Extract prefix from the original text if present
-  const originalText = view.state.doc.textBetween(state.from, state.to);
-  let prefix: string | null = null;
-  if (originalText.startsWith("+") || originalText.startsWith("-")) {
-    prefix = originalText.charAt(0);
-  }
+  const prefix = extractPrefix(view.state.doc, state.from, state.to);
 
   const rangeNode = searchSchema.nodes.range.create({
     field: state.fieldName,
@@ -453,7 +440,7 @@ function applyCustomRange(
   view.dispatch(tr);
 }
 
-function applyFixedValue(view: EditorView, value: string): void {
+export function applyFixedValue(view: EditorView, value: string): void {
   const state = autocompletePluginKey.getState(view.state) as AutocompleteState;
   if (
     !state.active ||
@@ -469,13 +456,7 @@ function applyFixedValue(view: EditorView, value: string): void {
   const finalValue = isDateField ? formatDateBound(value, "lower") : value;
 
   const tr = view.state.tr;
-
-  // Extract prefix from the original text if present
-  const originalText = view.state.doc.textBetween(state.from, state.to);
-  let prefix: string | null = null;
-  if (originalText.startsWith("+") || originalText.startsWith("-")) {
-    prefix = originalText.charAt(0);
-  }
+  const prefix = extractPrefix(view.state.doc, state.from, state.to);
 
   const atomNode = searchSchema.nodes["field-value"].create({
     field: state.fieldName,
@@ -493,7 +474,7 @@ function applyFixedValue(view: EditorView, value: string): void {
   view.dispatch(tr);
 }
 
-function applySuggestion(
+export function applySuggestion(
   view: EditorView,
   suggestion: Suggestion,
   preloaded?: Record<string, Suggestion[]>,
@@ -508,46 +489,40 @@ function applySuggestion(
   }
 }
 
-// ── Positioning helper ──────────────────────────────────────────
-
-function positionDropdown(
-  dropdown: HTMLElement,
-  view: EditorView,
-  pos: number,
-): void {
-  let coords: { top: number; bottom: number; left: number; right: number };
-  try {
-    coords = view.coordsAtPos(pos);
-  } catch {
-    // coordsAtPos requires layout (getClientRects); unavailable in jsdom
-    return;
+/**
+ * Populate interim suggestions on an autocomplete state in the value stage,
+ * using cached async results or preloaded data.
+ * Mutates `computed.suggestions` in place. Returns false if filtering
+ * produced no matches and the field is not async (caller should hide).
+ */
+export function populateInterimSuggestions(
+  computed: AutocompleteState,
+  lastAsyncResults: { field: string; suggestions: Suggestion[] } | null,
+  preloaded: Record<string, Suggestion[]> | undefined,
+): boolean {
+  if (computed.stage !== "value" || !computed.fieldName || computed.suggestions.length > 0)
+    return true;
+  const cachedValues =
+    lastAsyncResults?.field === computed.fieldName
+      ? lastAsyncResults.suggestions
+      : null;
+  const interimValues = cachedValues ?? preloaded?.[computed.fieldName];
+  if (!interimValues?.length) return true;
+  const filter = computed.filterText.toLowerCase();
+  computed.suggestions = filter
+    ? interimValues.filter(
+        (s) =>
+          s.value.toLowerCase().startsWith(filter) ||
+          s.label.toLowerCase().startsWith(filter),
+      )
+    : interimValues;
+  if (computed.suggestions.length === 0 && !isAsyncField(computed.fieldName)) {
+    return false; // no matches and no async fetch coming
   }
-
-  const virtualEl = {
-    getBoundingClientRect: () => ({
-      width: 0,
-      height: coords.bottom - coords.top,
-      x: coords.left,
-      y: coords.top,
-      top: coords.top,
-      right: coords.left,
-      bottom: coords.bottom,
-      left: coords.left,
-    }),
-  };
-
-  computePosition(virtualEl, dropdown, {
-    placement: "bottom-start",
-    middleware: [offset(4), flip(), shift({ padding: 8 })],
-  }).then(({ x, y }) => {
-    dropdown.style.left = `${x}px`;
-    dropdown.style.top = `${y}px`;
-  });
+  return true;
 }
 
 // ── Plugin ─────────────────────────────────────────────────────
-
-let idCounter = 0;
 
 export interface AutocompletePluginOptions {
   /** Returns preloaded suggestions derived from current search results. */
@@ -693,512 +668,10 @@ export function autocompletePlugin(
     },
 
     view(editorView) {
-      const dropdownId = `search-ac-${++idCounter}`;
-
-      // Container elements for Svelte components, appended to document.body
-      const dropdownContainer = document.createElement("div");
-      const rangeContainer = document.createElement("div");
-      const liveRegion = document.createElement("div");
-      liveRegion.setAttribute("aria-live", "polite");
-      liveRegion.setAttribute("aria-atomic", "true");
-      liveRegion.className = "sr-only";
-      liveRegion.style.position = "absolute";
-      liveRegion.style.width = "1px";
-      liveRegion.style.height = "1px";
-      liveRegion.style.overflow = "hidden";
-      liveRegion.style.clip = "rect(0 0 0 0)";
-      liveRegion.style.whiteSpace = "nowrap";
-      document.body.appendChild(dropdownContainer);
-      document.body.appendChild(rangeContainer);
-      document.body.appendChild(liveRegion);
-
-      // Mount Svelte components eagerly (kept alive for the editor's lifetime).
-      // The components' {#if visible} blocks handle show/hide internally.
-      const dropdownProps = $state({
-        suggestions: [] as Suggestion[],
-        selectedIndex: 0,
-        loading: false,
-        dropdownId,
-        onSelect,
-        onHover,
-      });
-      const dropdownComponent = mount(AutocompleteDropdown, {
-        target: dropdownContainer,
-        props: dropdownProps,
-      });
-      let rangeProps: Record<string, any> = $state({});
-      let rangeComponent: Record<string, any> | null = null;
-
-      // Set ARIA attributes on the editor
-      const editorDom = editorView.dom;
-      editorDom.setAttribute("aria-autocomplete", "list");
-      editorDom.setAttribute("aria-expanded", "false");
-      editorDom.setAttribute("aria-controls", dropdownId);
-
-      /** Only clear aria-activedescendant if autocomplete set it (not atom selection). */
-      function clearActiveDescendant() {
-        const current = editorDom.getAttribute("aria-activedescendant");
-        if (current && current.startsWith(dropdownId)) {
-          editorDom.removeAttribute("aria-activedescendant");
-        }
-      }
-
-      let prevSuggestionCount = 0;
-
-      // Async fetch state
-      let fetchTimer: ReturnType<typeof setTimeout> | null = null;
-      let abortController: AbortController | null = null;
-      let lastFetchKey = "";
-      /** Cache of last successfully fetched async suggestions, keyed by field. */
-      let lastAsyncResults: {
-        field: string;
-        suggestions: Suggestion[];
-      } | null = null;
-
-      function onSelect(index: number) {
-        const state = autocompletePluginKey.getState(
-          editorView.state,
-        ) as AutocompleteState;
-        const suggestion = state.suggestions[index];
-        if (suggestion) {
-          applySuggestion(
-            editorView,
-            suggestion,
-            options.getPreloadedSuggestions?.(),
-          );
-        }
-        editorView.focus();
-      }
-
-      function onHover(index: number) {
-        const state = autocompletePluginKey.getState(
-          editorView.state,
-        ) as AutocompleteState;
-        if (state.selectedIndex !== index) {
-          editorView.dispatch(
-            editorView.state.tr.setMeta(autocompletePluginKey, {
-              ...state,
-              selectedIndex: index,
-            }),
-          );
-        }
-      }
-
-      // Dismiss on click outside editor and dropdown
-      function onDocumentMousedown(e: MouseEvent) {
-        const target = e.target as Node;
-        if (
-          !editorDom.contains(target) &&
-          !dropdownContainer.contains(target) &&
-          !rangeContainer.contains(target)
-        ) {
-          const state = autocompletePluginKey.getState(
-            editorView.state,
-          ) as AutocompleteState;
-          if (state.active) {
-            editorView.dispatch(
-              editorView.state.tr.setMeta(autocompletePluginKey, DISMISSED),
-            );
-          }
-        }
-      }
-      document.addEventListener("mousedown", onDocumentMousedown);
-
-      // Dismiss on editor blur (with delay so dropdown clicks aren't missed)
-      function onEditorBlur() {
-        setTimeout(() => {
-          // Only dismiss if the focus didn't move to the dropdown
-          if (
-            !dropdownContainer.contains(document.activeElement) &&
-            !rangeContainer.contains(document.activeElement)
-          ) {
-            const state = autocompletePluginKey.getState(
-              editorView.state,
-            ) as AutocompleteState;
-            if (state.active) {
-              editorView.dispatch(
-                editorView.state.tr.setMeta(autocompletePluginKey, DISMISSED),
-              );
-            }
-          }
-        }, 100);
-      }
-      editorDom.addEventListener("blur", onEditorBlur);
-
-      /** Schedule an async fetch for value suggestions. */
-      function scheduleAsyncFetch(
-        view: EditorView,
-        fieldName: string,
-        filterText: string,
-      ) {
-        const fetchKey = `${fieldName}:${filterText}`;
-        if (fetchKey === lastFetchKey) return;
-        lastFetchKey = fetchKey;
-
-        // Cancel any pending fetch
-        if (fetchTimer) clearTimeout(fetchTimer);
-        if (abortController) abortController.abort();
-
-        abortController = new AbortController();
-
-        fetchTimer = setTimeout(async () => {
-          try {
-            const preloaded = options.getPreloadedSuggestions?.();
-            const suggestions = await fetchValueSuggestions(
-              fieldName,
-              filterText,
-              preloaded,
-            );
-            // Only apply if still relevant
-            const currentState = autocompletePluginKey.getState(
-              view.state,
-            ) as AutocompleteState;
-            // Cache results for optimistic display during future loads
-            lastAsyncResults = { field: fieldName, suggestions };
-            if (
-              currentState.active &&
-              currentState.fieldName === fieldName &&
-              currentState.filterText === filterText
-            ) {
-              view.dispatch(
-                view.state.tr.setMeta(autocompletePluginKey, {
-                  ...currentState,
-                  loading: false,
-                  suggestions,
-                  selectedIndex: 0,
-                }),
-              );
-            }
-          } catch {
-            // On error (including abort), clear loading gracefully
-            const currentState = autocompletePluginKey.getState(
-              view.state,
-            ) as AutocompleteState;
-            if (currentState.active && currentState.loading) {
-              view.dispatch(
-                view.state.tr.setMeta(autocompletePluginKey, {
-                  ...currentState,
-                  loading: false,
-                }),
-              );
-            }
-          }
-        }, 300);
-      }
-
-      let prevStage: string | null = null;
-
-      function announceCount(
-        count: number,
-        stage: string,
-        fieldName: string | null,
-      ) {
-        if (count === 0) {
-          liveRegion.textContent = "";
-        } else {
-          let context = "";
-          if (stage === "value" && fieldName) {
-            context = ` for ${fieldName}`;
-          } else if (stage === "range" && fieldName) {
-            context = ` for ${fieldName} range`;
-          }
-          liveRegion.textContent = `${count} suggestion${count === 1 ? "" : "s"}${context} available. Use up and down arrows to navigate.`;
-        }
-      }
-
-      /** Show the standard dropdown, hide range builder */
-      function showDropdown(pluginState: AutocompleteState, view: EditorView) {
-        // Hide range builder
-        if (rangeComponent) {
-          rangeComponent.getElement()?.style.setProperty("display", "none");
-        }
-
-        dropdownProps.suggestions = pluginState.suggestions;
-        dropdownProps.selectedIndex = pluginState.selectedIndex;
-        dropdownProps.loading = pluginState.loading;
-
-        const el = dropdownComponent.getElement();
-        if (el) {
-          el.style.display = "block";
-          if (pluginState.from != null) {
-            positionDropdown(el, view, pluginState.to ?? pluginState.from);
-          }
-        }
-      }
-
-      /** Show the range builder, hide standard dropdown */
-      function showRangeBuilder(
-        pluginState: AutocompleteState,
-        view: EditorView,
-      ) {
-        // Hide the standard dropdown
-        dropdownComponent.getElement()?.style.setProperty("display", "none");
-
-        if (!rangeComponent) {
-          Object.assign(rangeProps, {
-            fieldName: pluginState.fieldName!,
-            suggestions: pluginState.suggestions,
-            selectedIndex: pluginState.selectedIndex,
-            dropdownId,
-            onSelect,
-            onHover,
-            onCustomRange: (lower: string, upper: string) => {
-              applyCustomRange(view, lower, upper);
-              editorView.focus();
-            },
-            onFixedValue: (value: string) => {
-              applyFixedValue(view, value);
-              editorView.focus();
-            },
-            onFocusEditor: () => {
-              editorView.focus();
-            },
-            onDismiss: () => {
-              editorView.focus();
-              editorView.dispatch(
-                editorView.state.tr.setMeta(autocompletePluginKey, DISMISSED),
-              );
-            },
-          });
-          flushSync(() => {
-            rangeComponent = mount(RangeBuilder, {
-              target: rangeContainer,
-              props: rangeProps,
-            });
-          });
-        } else {
-          rangeProps.fieldName = pluginState.fieldName!;
-          rangeProps.suggestions = pluginState.suggestions;
-          rangeProps.selectedIndex = pluginState.selectedIndex;
-        }
-
-        const el = rangeComponent?.getElement();
-        if (el) {
-          el.style.display = "block";
-          if (pluginState.from != null) {
-            positionDropdown(el, view, pluginState.to ?? pluginState.from);
-          }
-        }
-      }
-
-      /** Hide all dropdowns */
-      function hideAll() {
-        dropdownComponent.getElement()?.style.setProperty("display", "none");
-        if (rangeComponent) {
-          rangeComponent.getElement()?.style.setProperty("display", "none");
-        }
-      }
-
+      const vc = new AutocompleteViewController(editorView, options);
       return {
-        update(view) {
-          const pluginState = autocompletePluginKey.getState(
-            view.state,
-          ) as AutocompleteState;
-
-          // Build the set of preloaded field names for trigger detection
-          const preloaded = options.getPreloadedSuggestions?.();
-          const preloadedFieldNames = preloaded
-            ? new Set(Object.keys(preloaded))
-            : undefined;
-
-          // If the plugin state is inactive, try to compute from text
-          // (but not if explicitly dismissed — wait for next doc change)
-          if (!pluginState.active) {
-            lastFetchKey = "";
-            const computed = pluginState.dismissed
-              ? null
-              : computeAutocompleteState(view, preloadedFieldNames);
-            if (computed) {
-              // Populate interim suggestions synchronously when available,
-              // using cached async results (preferred) or preloaded data
-              if (
-                computed.stage === "value" &&
-                computed.fieldName &&
-                computed.suggestions.length === 0
-              ) {
-                const cachedValues =
-                  lastAsyncResults?.field === computed.fieldName
-                    ? lastAsyncResults.suggestions
-                    : null;
-                const interimValues =
-                  cachedValues ?? preloaded?.[computed.fieldName];
-                if (interimValues?.length) {
-                  const filter = computed.filterText.toLowerCase();
-                  computed.suggestions = filter
-                    ? interimValues.filter(
-                        (s) =>
-                          s.value.toLowerCase().startsWith(filter) ||
-                          s.label.toLowerCase().startsWith(filter),
-                      )
-                    : interimValues;
-                  if (
-                    computed.suggestions.length === 0 &&
-                    !isAsyncField(computed.fieldName)
-                  ) {
-                    // No matches from interim data and no async fetch coming
-                    hideAll();
-                    editorDom.setAttribute("aria-expanded", "false");
-                    clearActiveDescendant();
-                    return;
-                  }
-                }
-              }
-              // Activate autocomplete
-              view.dispatch(
-                view.state.tr.setMeta(autocompletePluginKey, computed),
-              );
-              return; // will re-enter update on the next cycle
-            }
-
-            // Truly inactive
-            hideAll();
-            editorDom.setAttribute("aria-expanded", "false");
-            clearActiveDescendant();
-            if (prevSuggestionCount !== 0) {
-              announceCount(0, "field", null);
-              prevSuggestionCount = 0;
-            }
-            prevStage = null;
-            return;
-          }
-
-          // Range stage is modal: don't re-compute from text.
-          // It persists until the user selects a shortcut or dismisses.
-          if (pluginState.stage === "range" && pluginState.fieldName) {
-            showRangeBuilder(pluginState, view);
-            editorDom.setAttribute("aria-expanded", "true");
-            const activeId = `${dropdownId}-opt-${pluginState.selectedIndex}`;
-            editorDom.setAttribute("aria-activedescendant", activeId);
-            if (pluginState.stage !== prevStage) {
-              prevStage = pluginState.stage;
-            }
-            if (pluginState.suggestions.length !== prevSuggestionCount) {
-              announceCount(
-                pluginState.suggestions.length,
-                pluginState.stage,
-                pluginState.fieldName,
-              );
-              prevSuggestionCount = pluginState.suggestions.length;
-            }
-            return;
-          }
-
-          // Active: re-check trigger to update filter/suggestions.
-          // For async fields in loading state, skip the re-compute that would
-          // override the loading state with a fresh loading state (loop).
-          if (
-            !pluginState.loading ||
-            !pluginState.fieldName ||
-            !isAsyncField(pluginState.fieldName)
-          ) {
-            const computed = computeAutocompleteState(
-              view,
-              preloadedFieldNames,
-            );
-            if (computed) {
-              if (
-                computed.filterText !== pluginState.filterText ||
-                computed.stage !== pluginState.stage ||
-                computed.fieldName !== pluginState.fieldName
-              ) {
-                // Populate interim suggestions using cached or preloaded data
-                if (
-                  computed.stage === "value" &&
-                  computed.fieldName &&
-                  computed.suggestions.length === 0
-                ) {
-                  const cachedValues =
-                    lastAsyncResults?.field === computed.fieldName
-                      ? lastAsyncResults.suggestions
-                      : null;
-                  const interimValues =
-                    cachedValues ?? preloaded?.[computed.fieldName];
-                  if (interimValues?.length) {
-                    const filter = computed.filterText.toLowerCase();
-                    computed.suggestions = filter
-                      ? interimValues.filter(
-                          (s) =>
-                            s.value.toLowerCase().startsWith(filter) ||
-                            s.label.toLowerCase().startsWith(filter),
-                        )
-                      : interimValues;
-                  }
-                }
-                const clamped = Math.min(
-                  pluginState.selectedIndex,
-                  Math.max(0, computed.suggestions.length - 1),
-                );
-                view.dispatch(
-                  view.state.tr.setMeta(autocompletePluginKey, {
-                    ...computed,
-                    selectedIndex: Math.max(0, clamped),
-                  }),
-                );
-                return;
-              }
-            } else if (pluginState.filterText !== "") {
-              // Only deactivate if the user had been typing a filter that no
-              // longer matches. When filterText is "" (opened via "/"), we keep
-              // the dropdown open until an explicit dismiss (Escape, selection).
-              view.dispatch(
-                view.state.tr.setMeta(autocompletePluginKey, { ...INACTIVE }),
-              );
-              return;
-            }
-          }
-
-          // Trigger async fetch when in loading state
-          if (
-            pluginState.loading &&
-            pluginState.fieldName &&
-            isAsyncField(pluginState.fieldName)
-          ) {
-            scheduleAsyncFetch(
-              view,
-              pluginState.fieldName,
-              pluginState.filterText,
-            );
-          }
-
-          // Render the dropdown
-          showDropdown(pluginState, view);
-
-          // Update ARIA
-          editorDom.setAttribute("aria-expanded", "true");
-          const activeId = `${dropdownId}-opt-${pluginState.selectedIndex}`;
-          editorDom.setAttribute("aria-activedescendant", activeId);
-
-          // Announce stage transitions
-          if (pluginState.stage !== prevStage) {
-            prevStage = pluginState.stage;
-          }
-
-          // Announce changes
-          if (pluginState.suggestions.length !== prevSuggestionCount) {
-            announceCount(
-              pluginState.suggestions.length,
-              pluginState.stage,
-              pluginState.fieldName,
-            );
-            prevSuggestionCount = pluginState.suggestions.length;
-          }
-        },
-
-        destroy() {
-          if (fetchTimer) clearTimeout(fetchTimer);
-          if (abortController) abortController.abort();
-          document.removeEventListener("mousedown", onDocumentMousedown);
-          editorDom.removeEventListener("blur", onEditorBlur);
-          unmount(dropdownComponent);
-          if (rangeComponent) unmount(rangeComponent);
-          dropdownContainer.remove();
-          rangeContainer.remove();
-          liveRegion.remove();
-          editorDom.removeAttribute("aria-autocomplete");
-          editorDom.removeAttribute("aria-expanded");
-          editorDom.removeAttribute("aria-controls");
-          editorDom.removeAttribute("aria-activedescendant");
-        },
+        update(view) { vc.update(view); },
+        destroy() { vc.destroy(); },
       };
     },
   });

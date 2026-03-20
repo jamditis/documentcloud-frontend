@@ -159,6 +159,9 @@ const FIELDS: FieldDef[] = [
   },
 ];
 
+/** Fast field lookup by canonical name. */
+const FIELD_MAP = new Map(FIELDS.map((f) => [f.name, f]));
+
 /** Alias field names that map to canonical names. */
 const FIELD_ALIASES: Record<string, string> = {
   account: "user",
@@ -284,7 +287,7 @@ export function resolveFieldName(name: string): string {
  *  Returns a synthetic FieldDef for data_* fields. */
 export function resolveField(name: string): FieldDef | undefined {
   const canonical = resolveFieldName(name);
-  const found = FIELDS.find((f) => f.name === canonical);
+  const found = FIELD_MAP.get(canonical);
   if (found) return found;
 
   // Synthetic def for data_* fields
@@ -354,7 +357,7 @@ export function getFieldSuggestions(
   // Also match aliases
   for (const [alias, canonical] of Object.entries(FIELD_ALIASES)) {
     if (alias.startsWith(lower)) {
-      const field = FIELDS.find((f) => f.name === canonical);
+      const field = FIELD_MAP.get(canonical);
       if (field && !results.some((r) => r.value === canonical)) {
         results.push({
           label: `${field.label} (${alias})`,
@@ -417,6 +420,30 @@ export function getValueSuggestions(
  *   from search results. Fields in this set trigger value-stage autocomplete
  *   even if they don't have static or API-backed suggestions (e.g. tag, data_*).
  */
+type ValueTriggerResult = {
+  stage: "value";
+  fieldName: string;
+  valueFilter: string;
+  triggerStart: number;
+};
+
+function resolveValueTrigger(
+  rawField: string,
+  valueFilter: string,
+  triggerStart: number,
+  preloadedFields?: Set<string>,
+): ValueTriggerResult | null {
+  const canonical = resolveFieldName(rawField);
+  const field = FIELD_MAP.get(canonical);
+  if (field?.hasValueSuggestions)
+    return { stage: "value", fieldName: canonical, valueFilter, triggerStart };
+  if (field && preloadedFields?.has(canonical))
+    return { stage: "value", fieldName: canonical, valueFilter, triggerStart };
+  if (!field && preloadedFields?.has(rawField))
+    return { stage: "value", fieldName: rawField, valueFilter, triggerStart };
+  return null;
+}
+
 export function detectTrigger(
   textBeforeCursor: string,
   preloadedFields?: Set<string>,
@@ -442,36 +469,10 @@ export function detectTrigger(
   const quotedMatch = text.match(/([+-]?[a-zA-Z_][a-zA-Z0-9_]*):\"([^"]*)$/);
   if (quotedMatch) {
     const rawField = quotedMatch[1]!.replace(/^[+-]/, "");
-    const canonical = resolveFieldName(rawField);
     const valueFilter = quotedMatch[2]!;
     const triggerStart = quotedMatch.index!;
-    const field = FIELDS.find((f) => f.name === canonical);
-
-    if (field && field.hasValueSuggestions) {
-      return {
-        stage: "value",
-        fieldName: canonical,
-        valueFilter,
-        triggerStart,
-      };
-    }
-    if (field && preloadedFields?.has(canonical)) {
-      return {
-        stage: "value",
-        fieldName: canonical,
-        valueFilter,
-        triggerStart,
-      };
-    }
-    if (!field && preloadedFields?.has(rawField)) {
-      return {
-        stage: "value",
-        fieldName: rawField,
-        valueFilter,
-        triggerStart,
-      };
-    }
-    if (field) return { stage: null };
+    const result = resolveValueTrigger(rawField, valueFilter, triggerStart, preloadedFields);
+    if (result) return result;
     return { stage: null };
   }
 
@@ -489,42 +490,11 @@ export function detectTrigger(
     // Strip leading +/- prefix
     const fieldName = rawField.replace(/^[+-]/, "");
     const valueText = word.substring(colonIndex + 1);
-    const canonical = resolveFieldName(fieldName);
-    const field = FIELDS.find((f) => f.name === canonical);
+    const result = resolveValueTrigger(fieldName, valueText, triggerStart, preloadedFields);
+    if (result) return result;
 
-    if (field && field.hasValueSuggestions) {
-      return {
-        stage: "value",
-        fieldName: canonical,
-        valueFilter: valueText,
-        triggerStart,
-      };
-    }
-
-    // Field exists but no static/API suggestions — check preloaded data
-    if (field && preloadedFields?.has(canonical)) {
-      return {
-        stage: "value",
-        fieldName: canonical,
-        valueFilter: valueText,
-        triggerStart,
-      };
-    }
-
-    // Unknown field with preloaded data (data_* fields)
-    if (!field && preloadedFields?.has(fieldName)) {
-      return {
-        stage: "value",
-        fieldName: fieldName,
-        valueFilter: valueText,
-        triggerStart,
-      };
-    }
-
-    // Field exists but no suggestions at all → no autocomplete
-    if (field) return { stage: null };
-
-    // Unknown field — could be data_* or typo — no autocomplete
+    // Field exists but no suggestions → no autocomplete
+    // Unknown field — could be data_* or typo → no autocomplete
     return { stage: null };
   }
 
