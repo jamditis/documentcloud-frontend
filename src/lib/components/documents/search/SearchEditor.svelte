@@ -201,6 +201,7 @@
     min-width: 0;
     overflow: hidden;
     padding: 0.375rem 0.75rem;
+    text-align: left;
   }
 
   .sr-only {
