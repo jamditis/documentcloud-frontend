@@ -13,6 +13,7 @@ import {
 import { searchSchema } from "../schema";
 import { AutocompleteViewController } from "./autocomplete-view-controller.svelte";
 
+// PluginKey is a unique handle for reading this plugin's state from any EditorState
 export const autocompletePluginKey = new PluginKey("autocomplete");
 
 // ── State ──────────────────────────────────────────────────────
@@ -72,12 +73,15 @@ export function computeAutocompleteState(
   if (from !== to) return null;
   if (from < 1 || from > doc.content.size) return null;
 
+  // resolve() enriches a raw position with structural context (parent node, depth, etc.)
   const resolvedPos = doc.resolve(from);
   if (resolvedPos.parent.type.name !== "paragraph") return null;
 
   // Get text from start of paragraph to cursor.
   // Use space as the leaf-text separator so atom nodes produce a
   // space boundary, keeping word detection correct.
+  // textBetween extracts text between two positions; the separator args replace
+  // leaf boundaries (like atom nodes) with spaces so word detection stays correct
   const textBeforeCursor = doc.textBetween(resolvedPos.start(), from, " ", " ");
 
   const trigger = detectTrigger(textBeforeCursor, preloadedFields);
@@ -196,15 +200,19 @@ function applyFieldSuggestion(
     const rangeConfig = getRangeConfig(suggestion.value);
     if (rangeConfig) {
       const fieldText = `${suggestion.value}:`;
+      // Accessing .tr creates a fresh Transaction from the current state
       const tr = view.state.tr;
+      // Replace the typed text range with a new text node containing the field name
       tr.replaceWith(state.from, state.to, searchSchema.text(fieldText));
       const newTo = state.from + fieldText.length;
+      // Programmatically place the cursor at the end of the inserted text
       tr.setSelection(TextSelection.create(tr.doc, newTo));
 
       const shortcuts: Suggestion[] = rangeConfig.shortcuts.map((s) => ({
         label: s.label,
         value: s.label, // value not used for shortcuts; label identifies them
       }));
+      // Transaction metadata: plugins read this to update their own state without changing the doc
       tr.setMeta(autocompletePluginKey, {
         active: true,
         dismissed: false,
@@ -217,6 +225,7 @@ function applyFieldSuggestion(
         suggestions: shortcuts,
         selectedIndex: 0,
       });
+      // dispatch() sends the transaction through the state cycle: apply → new state → re-render
       view.dispatch(tr);
       return;
     }
@@ -329,6 +338,7 @@ function applyValueSuggestion(view: EditorView, suggestion: Suggestion): void {
     tr.replaceWith(state.from, replaceTo, sortNode);
     // Add a space after the atom and place cursor there
     const afterAtom = state.from + sortNode.nodeSize;
+    // Insert a non-breaking space (\u00A0) as a separator — regular spaces collapse in contenteditable
     tr.insertText("\u00A0", afterAtom);
     tr.setSelection(TextSelection.create(tr.doc, afterAtom + 1));
   } else if (fieldDef.insertBehavior === "field-value-atom") {
@@ -543,6 +553,8 @@ export function autocompletePlugin(
   return new Plugin<AutocompleteState>({
     key: autocompletePluginKey,
 
+    // Plugin state lifecycle: init() runs once at creation, apply() runs on every transaction.
+    // This gives each plugin its own managed state that updates in lockstep with the doc.
     state: {
       init(): AutocompleteState {
         return { ...INACTIVE };
@@ -562,6 +574,8 @@ export function autocompletePlugin(
     },
 
     props: {
+      // Plugin props intercept editor events before default handling.
+      // Return true to "consume" the event and prevent further processing.
       handleKeyDown(view, event) {
         const state = this.getState(view.state) as AutocompleteState;
 
@@ -675,6 +689,8 @@ export function autocompletePlugin(
       },
     },
 
+    // The view() lifecycle hook runs when the EditorView is created, returning
+    // update/destroy callbacks that track the editor's lifecycle.
     view(editorView) {
       const vc = new AutocompleteViewController(editorView, options);
       return {

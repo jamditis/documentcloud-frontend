@@ -116,7 +116,7 @@ describe("AutocompleteViewController", () => {
 
   describe("click-away dismissal", () => {
     it("dispatches DISMISSED on mousedown outside editor", () => {
-      // First activate autocomplete
+      // Set autocomplete plugin state via transaction metadata for test setup
       const tr = view.state.tr.setMeta(autocompletePluginKey, {
         active: true,
         dismissed: false,
@@ -138,6 +138,7 @@ describe("AutocompleteViewController", () => {
       outsideEl.dispatchEvent(event);
       outsideEl.remove();
 
+      // Read the autocomplete plugin's state to verify it was dismissed
       const state = autocompletePluginKey.getState(view.state);
       expect(state?.dismissed).toBe(true);
     });
@@ -203,7 +204,7 @@ describe("AutocompleteViewController", () => {
     });
 
     it("sets aria-expanded to true when active with field suggestions", () => {
-      // Insert text so computeAutocompleteState finds a trigger
+      // Type text into the editor to trigger autocomplete detection
       const tr = view.state.tr.insertText("acc");
       view.dispatch(tr);
       // Call update to trigger re-computation — the text "acc" triggers field autocomplete

@@ -48,7 +48,8 @@ function isBinaryAST(ast: unknown): ast is BinaryAST {
  */
 export function deserialize(query: string): ProseMirrorNode {
   if (!query || !query.trim()) {
-    // This is an empty ProseMirror document
+    // Build a PM doc programmatically: doc > paragraph > inline nodes.
+    // Schema enforces this structure (doc must contain paragraphs, paragraphs contain inline content).
     return searchSchema.node("doc", null, [
       searchSchema.node("paragraph", null, []),
     ]);
@@ -211,6 +212,7 @@ function handleTerm(
       displayValue: null,
     };
 
+    // Create an atom node from the schema's node type, passing attributes
     const pmNode = searchSchema.nodes["field-value"].create(attrs);
     const { start, end } = getTermFullSpan(node, query, prefix);
     segments.push({ start, end, node: pmNode });

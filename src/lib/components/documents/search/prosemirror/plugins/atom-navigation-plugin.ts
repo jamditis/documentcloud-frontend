@@ -13,15 +13,20 @@ const ATOM_TYPES = new Set(["field-value", "range", "sort"]);
  * Arrow-left: if the cursor (empty TextSelection) is immediately
  * after an atom node, select it instead of jumping over it.
  */
+// A PM Command is a function (state, dispatch?, view?) → boolean.
+// Return true to indicate the command handled the event.
 const arrowLeftIntoAtom: Command = (state, dispatch) => {
   const { selection } = state;
   if (!(selection instanceof TextSelection) || !selection.empty) return false;
   const { $from } = selection;
+  // Resolved positions expose adjacent nodes: nodeBefore/nodeAfter look at neighboring content
   const before = $from.nodeBefore;
   if (!before || !ATOM_TYPES.has(before.type.name)) return false;
   if (dispatch) {
     dispatch(
       state.tr.setSelection(
+        // PM position arithmetic: each node boundary counts as 1 position, so
+        // subtracting nodeSize from the current pos gives us the atom's start
         NodeSelection.create(state.doc, $from.pos - before.nodeSize),
       ),
     );
@@ -76,6 +81,7 @@ const tabIntoPopover: Command = (state) => {
 };
 
 export function atomNavigationKeymap() {
+  // keymap() creates a plugin that maps key bindings to PM commands
   return keymap({
     ArrowLeft: arrowLeftIntoAtom,
     ArrowRight: arrowRightIntoAtom,

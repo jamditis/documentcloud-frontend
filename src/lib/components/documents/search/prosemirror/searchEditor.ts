@@ -55,6 +55,7 @@ const ATOM_TYPES = new Set(["field-value", "range", "sort"]);
  *  cosmetic attrs like displayValue are excluded. */
 export function getFingerprint(doc: Node): string {
   const parts: string[] = [];
+  // PM tree walker: visits every node in the doc depth-first, calling back with (node, pos)
   doc.descendants((node) => {
     if (ATOM_TYPES.has(node.type.name)) {
       // Exclude displayValue — it's cosmetic and doesn't affect the query
@@ -106,6 +107,7 @@ export function applyCarriedDisplayValues(
       const key = `${node.attrs.field}:${node.attrs.value}`;
       const displayValue = carried.get(key);
       if (displayValue) {
+        // setNodeMarkup updates a node's attributes in place without replacing the node
         tr.setNodeMarkup(pos, undefined, {
           ...node.attrs,
           displayValue,
@@ -179,6 +181,8 @@ export function createSearchEditor(
   target: HTMLElement,
   opts: SearchEditorOptions,
 ): EditorView {
+  // EditorState = immutable snapshot of the doc, selection, and plugin states.
+  // PM never mutates state — every change produces a new state via transactions.
   const state = EditorState.create({
     schema: searchSchema,
     doc: deserialize(opts.initialQuery),
@@ -209,12 +213,16 @@ export function createSearchEditor(
     ],
   });
 
+  // EditorView renders the state into a contenteditable DOM element and handles user input.
   const view = new EditorView(target, {
     state,
     nodeViews,
     attributes: { spellcheck: "false" },
+    // Called on every user action. PM never mutates state directly —
+    // each change is a Transaction that produces a new immutable state.
     dispatchTransaction(tr) {
       const oldDoc = view.state.doc;
+      // Apply the transaction to get a new state, then tell the view to render it.
       view.updateState(view.state.apply(tr));
       if (tr.docChanged) {
         const q = serialize(view.state.doc);
@@ -245,6 +253,7 @@ export function updateEditorQuery(view: EditorView, query: string): void {
   const carried = collectDisplayValues(view.state.doc);
 
   const doc = deserialize(query);
+  // Replace the entire document content with the newly deserialized doc
   const tr = view.state.tr.replaceWith(
     0,
     view.state.doc.content.size,
@@ -276,6 +285,7 @@ export function validateEditorQuery(view: EditorView): boolean {
   const q = serialize(view.state.doc);
   const { isValid } = validateQuery(q);
   if (!isValid) {
+    // setMeta attaches metadata to a transaction — plugins read this to update their own state
     const tr = view.state.tr.setMeta(decorationPluginKey, true);
     view.dispatch(tr);
   }

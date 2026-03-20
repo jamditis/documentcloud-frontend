@@ -20,6 +20,7 @@ function insertNode(
 ) {
   const view = component.getView();
   const node = searchSchema.nodes[nodeType]?.create(attrs);
+  // Insert the atom node at the current cursor position
   const tr = view.state.tr.replaceSelectionWith(node);
   view.dispatch(tr);
 }
@@ -128,6 +129,7 @@ describe("NodeViews in SearchEditor", () => {
             value: "private",
           }),
         ];
+        // Replace a range with multiple nodes (atoms + text)
         const tr = view.state.tr.replaceWith(
           1, // start of paragraph content
           1, // end (empty paragraph)
@@ -169,6 +171,7 @@ describe("NodeViews in SearchEditor", () => {
         const view = component.getView();
         const { doc } = view.state;
         let nodePos: number | null = null;
+        // Walk the doc tree to find the atom's position
         doc.descendants((node, pos) => {
           if (
             node.type.name === "field-value" &&
@@ -180,6 +183,7 @@ describe("NodeViews in SearchEditor", () => {
           }
         });
         expect(nodePos).not.toBeNull();
+        // Update the node's attributes in place without replacing it
         const tr = view.state.tr.setNodeMarkup(nodePos!, undefined, {
           ...view.state.doc.nodeAt(nodePos!)!.attrs,
           displayValue: "Mitchell Kotler",
@@ -309,6 +313,7 @@ describe("NodeViews in SearchEditor", () => {
           }
         });
         expect(nodePos).not.toBeNull();
+        // Select the atom node (NodeSelection highlights the whole node, not a text range)
         const tr = view.state.tr.setSelection(
           NodeSelection.create(view.state.doc, nodePos!),
         );
@@ -347,6 +352,7 @@ describe("NodeViews in SearchEditor", () => {
 
       // Move selection away (text cursor at end of doc)
       await act(() => {
+        // Move cursor to a text position, deselecting the atom
         const endPos = view.state.doc.content.size - 1;
         const tr = view.state.tr.setSelection(
           TextSelection.create(view.state.doc, endPos),

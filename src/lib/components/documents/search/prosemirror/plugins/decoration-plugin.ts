@@ -104,6 +104,7 @@ function buildDecorations(
       const from = pos + match.index;
       const to = from + match[0].length;
       decorations.push(
+        // Decorations are visual overlays — they add CSS classes without changing the document model
         Decoration.inline(from, to, { class: "search-operator" }),
       );
     }
@@ -155,6 +156,7 @@ function buildDecorations(
     }
   }
 
+  // DecorationSet must be created against a specific doc version so PM can map positions correctly
   return DecorationSet.create(doc, decorations);
 }
 
@@ -195,6 +197,7 @@ export function decorationPlugin() {
           showErrors: false,
         };
       },
+      // Runs on every transaction — rebuild decorations if the doc changed
       apply(tr, pluginState) {
         // Check if this transaction triggers error mode
         const triggerErrors = tr.getMeta(decorationPluginKey);
@@ -224,6 +227,7 @@ export function decorationPlugin() {
       },
     },
     props: {
+      // PM queries each plugin for decorations to render via this prop
       decorations(state) {
         return this.getState(state)?.decorations ?? DecorationSet.empty;
       },

@@ -14,6 +14,7 @@ function makeFieldValue(
   value: string,
   extra: Record<string, unknown> = {},
 ) {
+  // Create an atom node from the schema's node type with the given attributes
   return searchSchema.nodes["field-value"].create({
     field,
     value,
@@ -41,6 +42,7 @@ function docWith(...nodes: ReturnType<typeof makeFieldValue>[]) {
 }
 
 function stateWith(...nodes: ReturnType<typeof makeFieldValue>[]) {
+  // Set up an editor state with a doc built from the given nodes
   return EditorState.create({
     schema: searchSchema,
     doc: docWith(...nodes),
@@ -159,8 +161,10 @@ describe("applyCarriedDisplayValues", () => {
     const tr = applyCarriedDisplayValues(state, carried);
     expect(tr).not.toBeNull();
 
+    // Apply the transaction to produce a new immutable state
     const newState = state.apply(tr!);
     let found = false;
+    // Walk the doc tree to verify the atom's attributes were updated
     newState.doc.descendants((node) => {
       if (node.type.name === "field-value" && node.attrs.value === "123") {
         expect(node.attrs.displayValue).toBe("Alice");

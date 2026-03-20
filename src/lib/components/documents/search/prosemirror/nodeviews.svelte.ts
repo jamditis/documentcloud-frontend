@@ -22,6 +22,8 @@ import { atomLabel } from "../utils/label";
 type AtomBehavior = "edit" | "toggle-sort";
 
 /** Generic Svelte NodeView mounts a component with node attrs as props */
+// A NodeView lets us take over rendering of a node type — PM delegates DOM creation
+// and update to this class instead of using its default rendering.
 class SvelteNodeView implements NodeView {
   private static nextId = 0;
 
@@ -110,6 +112,7 @@ class SvelteNodeView implements NodeView {
   ) {
     const currentPos = this.getPos();
     if (currentPos === undefined) return;
+    // nodeAt() looks up the node at an exact document position
     const currentNode = this.view.state.doc.nodeAt(currentPos);
     if (!currentNode) return;
     const newAttrs =
@@ -119,6 +122,7 @@ class SvelteNodeView implements NodeView {
       ...newAttrs,
     });
     // Preserve NodeSelection so deselectNode doesn't fire
+    // NodeSelection selects an entire node (vs TextSelection which is a cursor/range in text)
     tr.setSelection(NodeSelection.create(tr.doc, currentPos));
     this.view.dispatch(tr);
   }
@@ -169,6 +173,7 @@ class SvelteNodeView implements NodeView {
         if (currentPos === undefined) return;
         const currentNode = this.view.state.doc.nodeAt(currentPos);
         if (!currentNode) return;
+        // Delete by position range: from the node's start to start + nodeSize
         const tr = this.view.state.tr.delete(
           currentPos,
           currentPos + currentNode.nodeSize,
@@ -202,6 +207,8 @@ class SvelteNodeView implements NodeView {
   }
 
   /** Update the component when the node's attributes change */
+  // NodeView.update(): PM calls this when the node changes. Return true = we handled the update;
+  // returning false would cause PM to destroy and recreate the NodeView.
   update(node: ProseMirrorNode): boolean {
     Object.assign(this.componentProps, node.attrs);
     this.dom.setAttribute("aria-label", atomLabel(node.type.name, node.attrs));
@@ -216,6 +223,8 @@ class SvelteNodeView implements NodeView {
   }
 
   /** Atom nodes have no editable content */
+  // Atom nodes have no editable content, so we tell PM to ignore all DOM mutations
+  // inside this NodeView. Without this, contenteditable changes could confuse PM's state.
   ignoreMutation(): boolean {
     return true;
   }

@@ -33,6 +33,7 @@ describe("Clipboard plugin", () => {
       // Select all content in the editor
       const { TextSelection } = await import("prosemirror-state");
       const { state } = view;
+      // Select all content in the editor for copying
       const tr = state.tr.setSelection(
         TextSelection.create(state.doc, 1, state.doc.content.size - 1),
       );
@@ -67,6 +68,7 @@ describe("Clipboard plugin", () => {
       expect(query).toBe("user:102112 AND access:private");
 
       // Verify atoms are created
+      // Walk the doc tree to count atom nodes in the deserialized result
       let atomCount = 0;
       doc.descendants((node) => {
         if (node.type.name === "field-value") atomCount++;

@@ -30,6 +30,7 @@ function positionDropdown(
 ): void {
   let coords: { top: number; bottom: number; left: number; right: number };
   try {
+    // Map a PM document position to screen pixel coordinates for dropdown positioning
     coords = view.coordsAtPos(pos);
   } catch {
     return;
@@ -127,6 +128,7 @@ export class AutocompleteViewController {
     });
 
     // Set ARIA attributes on the editor
+    // editorView.dom is the contenteditable element that PM renders into
     this.editorDom = editorView.dom;
     this.editorDom.setAttribute("aria-autocomplete", "list");
     this.editorDom.setAttribute("aria-expanded", "false");
@@ -140,10 +142,12 @@ export class AutocompleteViewController {
         !this.dropdownContainer.contains(target) &&
         !this.rangeContainer.contains(target)
       ) {
+        // Read this plugin's state from the current editor state using its PluginKey
         const state = autocompletePluginKey.getState(
           this.editorView.state,
         ) as AutocompleteState;
         if (state.active) {
+          // Dispatch a metadata-only transaction (no doc change) to update plugin state
           this.editorView.dispatch(
             this.editorView.state.tr.setMeta(autocompletePluginKey, DISMISSED),
           );

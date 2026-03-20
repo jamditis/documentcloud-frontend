@@ -41,6 +41,7 @@ function docWithAtom(type: "field-value" | "range" | "sort" = "field-value") {
 
 function createView(doc: ReturnType<typeof nodes.doc.create>) {
   const div = document.createElement("div");
+  // Set up editor state with the atom navigation plugin active
   const state = EditorState.create({
     doc,
     plugins: [atomNavigationKeymap(), keymap(baseKeymap)],
@@ -71,7 +72,7 @@ describe("atom-navigation-plugin", () => {
       const view = createView(doc);
       const atomPos = findAtomPos(doc, "field-value");
 
-      // Place cursor right after the atom
+      // Place cursor right after the atom node
       const afterAtom = atomPos + 1;
       view.dispatch(
         view.state.tr.setSelection(
@@ -81,6 +82,7 @@ describe("atom-navigation-plugin", () => {
 
       pressKey(view, "ArrowLeft");
 
+      // Verify the arrow key converted the TextSelection into a NodeSelection on the atom
       expect(view.state.selection).toBeInstanceOf(NodeSelection);
       expect((view.state.selection as NodeSelection).node.type.name).toBe(
         "field-value",

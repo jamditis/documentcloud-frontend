@@ -102,6 +102,8 @@ function serializeInternal(
       default:
         // For container nodes (doc, paragraph), recurse into children
         if (trackOffsets) {
+          // PM's forEach passes (child, offset, index) — offset is the child's position relative to parent.
+          // We need offsets here to build the position map for decoration targeting.
           node.forEach(processNode);
         } else {
           node.forEach((child) => processNode(child));
@@ -109,6 +111,7 @@ function serializeInternal(
     }
   };
 
+  // Distinguish Fragment (a flat list of nodes) from Node (has a type and may contain children)
   if ("forEach" in docOrFragment && !("type" in docOrFragment)) {
     // It's a Fragment
     (docOrFragment as Fragment).forEach((child) => processNode(child));
